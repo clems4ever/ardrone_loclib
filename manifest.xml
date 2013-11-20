@@ -1,0 +1,14 @@
+<package>
+  <description brief="ardrone_loclib">
+
+     ardrone_loclib
+
+  </description>
+  <author>clems</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ardrone_loclib</url>
+
+</package>
+
+
