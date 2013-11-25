@@ -1,0 +1,17 @@
+<launch>
+  <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+	
+    <param name="output_frame" value="odom"/>
+    <param name="freq" value="30.0"/>
+    <param name="sensor_timeout" value="1.0"/>
+    <param name="odom_used" value="true"/>
+    <param name="imu_used" value="true"/>
+    <param name="vo_used" value="true"/>
+    <param name="debug" value="false"/>
+    <param name="self_diagnose" value="false"/>
+    <remap from="/imu_data" to="/ardrone/imu"/>   
+
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="baselink" args="0 0 0 0 0 0 /base_footprint /ardrone_base_link 100"/>
+ </launch>

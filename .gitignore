@@ -21,4 +21,5 @@ bin/*
 # Qt generated files
 moc_*
 
+.*.swp
 #*~
