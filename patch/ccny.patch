@@ -1,0 +1,4 @@
+79c79
+<         CFLAG="-fPIC -O -I/usr/X11R6/include"
+---
+>         CFLAG="-fPIC -O -I/usr/X11R6/include -I/usr/src/linux-headers-"$(uname -r)"/include"
