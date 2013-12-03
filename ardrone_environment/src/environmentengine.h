@@ -3,15 +3,22 @@
 
 #include <QObject>
 
+class Map2D;
+
 class EnvironmentEngine : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnvironmentEngine(QObject *parent = 0);
+    EnvironmentEngine(QObject *parent = 0);
+
+    void start();
 
 signals:
 
 public slots:
+
+private:
+    Map2D *p_map;
 
 };
 

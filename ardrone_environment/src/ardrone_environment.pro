@@ -7,8 +7,12 @@
 QT       += core gui widgets
 
 TARGET = ardrone_environment
-CONFIG   += console
-CONFIG   -= app_bundle
+#CONFIG   += console
+#CONFIG   -= app_bundle
+
+INCLUDEPATH = ../../srv_gen/cpp/include/ \
+                /opt/ros/fuerte/include/
+
 
 TEMPLATE = app
 
@@ -16,9 +20,11 @@ TEMPLATE = app
 SOURCES += \
     main.cpp \
     environmentengine.cpp \
-    map2d.cpp
+    map2d.cpp \
+    ros_wrapper.cpp
 
 
 HEADERS += \
     environmentengine.h \
-    map2d.h
+    map2d.h \
+    ros_wrapper.h
