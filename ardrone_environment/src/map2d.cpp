@@ -9,15 +9,18 @@
 #include <QRgb>
 #include <QDebug>
 #include <QColor>
-#include <QException>
 
-Map2D::Map2D(QObject * parent) : QObject(parent)
+Map2D::Map2D(QObject * parent) :
+    QObject(parent)
 {
     p_tilesArray = 0;
 }
 
 Map2D::~Map2D()
 {
+    if(p_tilesArray == 0)
+        return;
+
     for(int i=0; i<m_size.width(); i++)
     {
         delete[] p_tilesArray[i];
@@ -29,15 +32,15 @@ void Map2D::load(const QString &backgroundLayer, const QString &environmentLayer
 {
     int currentId = 0;
 
-    if(!m_backgroundImage.load(backgroundLayer))
-    {
-        qDebug("Map2D: Background image not loaded");
-        throw std::exception();
-    }
-
     if(!m_environmentImage.load(environmentLayer))
     {
         qDebug("Map2D: Environment image not loaded");
+        throw std::exception();
+    }
+
+    if(!m_backgroundImage.load(backgroundLayer))
+    {
+        qDebug("Map2D: Background image not loaded");
         throw std::exception();
     }
 
@@ -100,13 +103,13 @@ QList<Map2D::TagPosition> Map2D::getTagPositions() const
 int Map2D::getTagId(int x, int y) const
 {
     if(p_tilesArray[x][y].type != TAG)
-        throw QException();
+        throw std::exception();
     return p_tilesArray[x][y].id;
 }
 
 QVariant Map2D::getTagValue(int x, int y) const
 {
     if(p_tilesArray[x][y].type != TAG)
-        throw QException();
+        throw std::exception();
     return p_tilesArray[x][y].id;
 }

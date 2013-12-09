@@ -1,0 +1,32 @@
+<package>
+	<name>ardrone_environment</name>
+  <description brief="localization and movement tools for AR.Drone">
+
+		ardrone_loclib is developped by INSA Toulouse (France) students. Its purpose is to provide tools for localization and
+		movement in partially known outdoor environement.
+		It provides tool for GPS management, visual odometry, tag detection, state estimation, GUI...
+
+  </description>
+  <author>clems</author>
+  <author>Jules</author>
+  <author>Jeri</author>
+  <author>Pierre</author>
+  <author>Yves</author>
+	<maintainer>INSA Toulouse</maintainer>
+
+  <license>BSD</license>
+
+  <review status="unreviewed" notes=""/>
+
+	<url>https://github.com/clems4ever/ardrone_loclib</url>
+
+	<buildtool_depend>rosbuild</buildtool_depend>
+
+	<depend package="roscpp"/>
+	<depend package="std_msgs"/>
+
+	<run_depend>roscpp</run_depend>
+	<run_depend>std_msgs</run_depend>
+
+</package>
+

@@ -23,3 +23,9 @@ moc_*
 
 .*.swp
 #*~
+
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+*.pro*

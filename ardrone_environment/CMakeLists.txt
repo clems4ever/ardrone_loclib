@@ -17,9 +17,26 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
-#rosbuild_genmsg()
+rosbuild_genmsg()
 #uncomment if you have defined services
-#rosbuild_gensrv()
+rosbuild_gensrv()
+
+# ARDroneEnvironment
+FIND_PACKAGE(Qt4 REQUIRED)
+
+include_directories("srv_gen/cpp/include")
+#SET(ardrone_environment_DIR src/ardrone_environment)
+SET(ardrone_environment_SOURCES src/main.cpp src/environmentengine.cpp src/map2d.cpp src/ros_wrapper.cpp)
+SET(ardrone_environment_HEADERS src/environmentengine.h src/map2d.h src/ros_wrapper.h)
+
+QT4_WRAP_CPP(ardrone_environment_HEADERS_MOC ${ardrone_environment_HEADERS})
+
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+
+rosbuild_add_executable(ardrone_environment ${ardrone_environment_SOURCES}
+    ${ardrone_environment_HEADERS_MOC})
+TARGET_LINK_LIBRARIES(ardrone_environment ${QT_LIBRARIES})
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
@@ -27,5 +44,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
-rosbuild_add_executable(odom_to_path src/rviz_tools/odom_to_path.cpp)
+#rosbuild_add_executable(odom_to_path src/rviz_tools/odom_to_path.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
