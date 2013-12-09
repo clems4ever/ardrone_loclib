@@ -16,5 +16,9 @@
 		<remap from="/odom" to="/gps_odom"/>
 	</node>
 
-  <node pkg="tf" type="static_transform_publisher" name="baselink" args="-376186 -4825319 -164 0 0 0 /map /base_gps 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="odom_base_gps" args="0 0 0 0 0 0 /base_gps /odom 100"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="mapTF" args="-376186 -4825319 -164 0 0 0 /map /base_gps 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="trouTF" args="376361.08019 4825485.55972 112 0 0 0 /base_gps /trou 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="geiTF" args="376185.20354 4825370.37057 112 0 0 0 /base_gps /gei 100"/>
  </launch>

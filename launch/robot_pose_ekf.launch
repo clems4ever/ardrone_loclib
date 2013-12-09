@@ -10,6 +10,7 @@
     <param name="debug" value="false"/>
     <param name="self_diagnose" value="false"/>
     <remap from="/imu_data" to="/ardrone/imu"/>   
+    <remap from="/vo" to="gps_odom"/>   
 
   </node>
 
