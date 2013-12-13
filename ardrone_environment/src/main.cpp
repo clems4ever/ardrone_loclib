@@ -7,10 +7,11 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "ardrone_environment");
     QCoreApplication app(argc, argv);
+    ros::init(argc, argv, "ardrone_environment", ros::init_options::NoSigintHandler);
     qDebug("ARDrone Environment starting...");
     EnvironmentEngine engine;
+
     engine.start();
     //qDebug("ARDrone Environment node is ending...");
 
