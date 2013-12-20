@@ -1,0 +1,8 @@
+*.txt
+*.mat
+html
+html/*
+*.rsp
+*.tmw
+*.mk
+
