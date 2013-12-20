@@ -1,4 +1,2 @@
+string name
 ARDroneMapColumns[] tiles
-string map_name
----
-

@@ -10,7 +10,7 @@ TARGET = ardrone_environment
 #CONFIG   += console
 #CONFIG   -= app_bundle
 
-INCLUDEPATH = ../../srv_gen/cpp/include/ \
+INCLUDEPATH = ../srv_gen/cpp/include/ \
                 /opt/ros/fuerte/include/
 
 

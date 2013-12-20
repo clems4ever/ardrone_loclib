@@ -29,3 +29,7 @@ CMakeFiles/
 cmake_install.cmake
 
 *.pro*
+
+
+# ROS generated dirs
+*_gen/
