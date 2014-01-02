@@ -4,7 +4,7 @@
  * Definitions required by Real-Time Workshop generated code.
  *
  * Real-Time Workshop version: 7.4
- * Generated on: 2013-12-15 14:39:44
+ * Generated on: 2014-01-02 12:38:20
  */
 
 #ifndef __RTWTYPES_H__
@@ -23,11 +23,11 @@
 
 /*=======================================================================*
  * Target hardware information
- *   Device type: 32-bit Generic
+ *   Device type: Intel->x86/Pentium
  *   Number of bits:     char:   8    short:   16    int:  32
  *                       long:  32      native word size:  32
- *   Byte ordering: Unspecified
- *   Signed integer division rounds to: Undefined
+ *   Byte ordering: LittleEndian
+ *   Signed integer division rounds to: Zero
  *   Shift right on a signed integer as arithmetic shift: on
  *=======================================================================*/
 
@@ -58,56 +58,6 @@ typedef unsigned int uint_T;
 typedef unsigned long ulong_T;
 typedef char char_T;
 typedef char_T byte_T;
-
-/*===========================================================================*
- * Complex number type definitions                                           *
- *===========================================================================*/
-#define CREAL_T
-
-typedef struct {
-  real32_T re;
-  real32_T im;
-} creal32_T;
-
-typedef struct {
-  real64_T re;
-  real64_T im;
-} creal64_T;
-
-typedef struct {
-  real_T re;
-  real_T im;
-} creal_T;
-
-typedef struct {
-  int8_T re;
-  int8_T im;
-} cint8_T;
-
-typedef struct {
-  uint8_T re;
-  uint8_T im;
-} cuint8_T;
-
-typedef struct {
-  int16_T re;
-  int16_T im;
-} cint16_T;
-
-typedef struct {
-  uint16_T re;
-  uint16_T im;
-} cuint16_T;
-
-typedef struct {
-  int32_T re;
-  int32_T im;
-} cint32_T;
-
-typedef struct {
-  uint32_T re;
-  uint32_T im;
-} cuint32_T;
 
 /*=======================================================================*
  * Min and Max:                                                          *

@@ -3,15 +3,15 @@
  *
  * Real-Time Workshop code generated for Simulink model Pos_Controller.
  *
- * Model version                        : 1.338
+ * Model version                        : 1.383
  * Real-Time Workshop file version      : 7.4  (R2009b)  29-Jun-2009
- * Real-Time Workshop file generated on : Sun Dec 15 14:39:42 2013
+ * Real-Time Workshop file generated on : Wed Jan  1 19:08:22 2014
  * TLC version                          : 7.4 (Jul 13 2009)
- * C/C++ source code generated on       : Sun Dec 15 14:39:42 2013
+ * C/C++ source code generated on       : Wed Jan  1 19:08:22 2014
  *
  * Target selection: ert.tlc
- * Embedded hardware selection: 32-bit Generic
- * Code generation objectives: Unspecified
+ * Embedded hardware selection: Intel->x86/Pentium
+ * Code generation objective: Efficiency
  * Validation result: Passed (0), Warning (1), Error (0)
  */
 
@@ -34,52 +34,21 @@ extern "C" {
     if (bitsPerReal == 32) {
       inf = rtGetInfF();
     } else {
-      uint16_T one = 1;
-      enum {
-        LittleEndian,
-        BigEndian
-      } machByteOrder = (*((uint8_T *) &one) == 1) ? LittleEndian : BigEndian;
-      switch (machByteOrder) {
-       case LittleEndian:
-        {
-          typedef struct {
-            struct {
-              uint32_T wordL;
-              uint32_T wordH;
-            } words;
-          } LittleEndianIEEEDouble;
+      typedef struct {
+        struct {
+          uint32_T wordL;
+          uint32_T wordH;
+        } words;
+      } LittleEndianIEEEDouble;
 
-          union {
-            LittleEndianIEEEDouble bitVal;
-            real_T fltVal;
-          } tmpVal;
+      union {
+        LittleEndianIEEEDouble bitVal;
+        real_T fltVal;
+      } tmpVal;
 
-          tmpVal.bitVal.words.wordH = 0x7FF00000;
-          tmpVal.bitVal.words.wordL = 0x00000000;
-          inf = tmpVal.fltVal;
-          break;
-        }
-
-       case BigEndian:
-        {
-          typedef struct {
-            struct {
-              uint32_T wordH;
-              uint32_T wordL;
-            } words;
-          } BigEndianIEEEDouble;
-
-          union {
-            BigEndianIEEEDouble bitVal;
-            real_T fltVal;
-          } tmpVal;
-
-          tmpVal.bitVal.words.wordH = 0x7FF00000;
-          tmpVal.bitVal.words.wordL = 0x00000000;
-          inf = tmpVal.fltVal;
-          break;
-        }
-      }
+      tmpVal.bitVal.words.wordH = 0x7FF00000;
+      tmpVal.bitVal.words.wordL = 0x00000000;
+      inf = tmpVal.fltVal;
     }
 
     return inf;
@@ -114,52 +83,21 @@ extern "C" {
     if (bitsPerReal == 32) {
       minf = rtGetMinusInfF();
     } else {
-      uint16_T one = 1;
-      enum {
-        LittleEndian,
-        BigEndian
-      } machByteOrder = (*((uint8_T *) &one) == 1) ? LittleEndian : BigEndian;
-      switch (machByteOrder) {
-       case LittleEndian:
-        {
-          typedef struct {
-            struct {
-              uint32_T wordL;
-              uint32_T wordH;
-            } words;
-          } LittleEndianIEEEDouble;
+      typedef struct {
+        struct {
+          uint32_T wordL;
+          uint32_T wordH;
+        } words;
+      } LittleEndianIEEEDouble;
 
-          union {
-            LittleEndianIEEEDouble bitVal;
-            real_T fltVal;
-          } tmpVal;
+      union {
+        LittleEndianIEEEDouble bitVal;
+        real_T fltVal;
+      } tmpVal;
 
-          tmpVal.bitVal.words.wordH = 0xFFF00000;
-          tmpVal.bitVal.words.wordL = 0x00000000;
-          minf = tmpVal.fltVal;
-          break;
-        }
-
-       case BigEndian:
-        {
-          typedef struct {
-            struct {
-              uint32_T wordH;
-              uint32_T wordL;
-            } words;
-          } BigEndianIEEEDouble;
-
-          union {
-            BigEndianIEEEDouble bitVal;
-            real_T fltVal;
-          } tmpVal;
-
-          tmpVal.bitVal.words.wordH = 0xFFF00000;
-          tmpVal.bitVal.words.wordL = 0x00000000;
-          minf = tmpVal.fltVal;
-          break;
-        }
-      }
+      tmpVal.bitVal.words.wordH = 0xFFF00000;
+      tmpVal.bitVal.words.wordL = 0x00000000;
+      minf = tmpVal.fltVal;
     }
 
     return minf;

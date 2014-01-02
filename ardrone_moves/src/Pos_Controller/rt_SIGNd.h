@@ -1,5 +1,5 @@
 /*
- * File: Pos_Controller_types.h
+ * File: rt_SIGNd.h
  *
  * Real-Time Workshop code generated for Simulink model Pos_Controller.
  *
@@ -15,17 +15,10 @@
  * Validation result: Passed (9), Warning (1), Error (0)
  */
 
-#ifndef RTW_HEADER_Pos_Controller_types_h_
-#define RTW_HEADER_Pos_Controller_types_h_
-#include "rtwtypes.h"
-
-/* Parameters (auto storage) */
-typedef struct Parameters_Pos_Controller_ Parameters_Pos_Controller;
-
-/* Forward declaration for rtModel */
-typedef struct RT_MODEL_Pos_Controller RT_MODEL_Pos_Controller;
-
-#endif                                 /* RTW_HEADER_Pos_Controller_types_h_ */
+#ifndef RTW_HEADER_rt_SIGNd_h_
+#define RTW_HEADER_rt_SIGNd_h_
+#define rt_SIGNd(a)                    ( ((a) < 0.0) ? -1.0 : ((a) > 0.0) ? 1.0 : 0.0 )
+#endif                                 /* RTW_HEADER_rt_SIGNd_h_ */
 
 /*
  * File trailer for Real-Time Workshop generated code.

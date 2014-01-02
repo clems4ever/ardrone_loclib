@@ -1,5 +1,4 @@
 <package>
-	<name>ardrone_loclib</name>
   <description brief="localization and movement tools for AR.Drone">
 
 		ardrone_loclib is developped by INSA Toulouse (France) students. Its purpose is to provide tools for localization and
@@ -23,8 +22,10 @@
 	<buildtool_depend>rosbuild</buildtool_depend>
 
 	<depend package="roscpp"/>
+	<depend package="tf"/>
 	<depend package="rospy"/>
 	<depend package="std_msgs"/>
+	<!--depend package="ardrone_autonomy"/-->
 
 	<run_depend>message_runtime</run_depend>
 	<run_depend>roscpp</run_depend>

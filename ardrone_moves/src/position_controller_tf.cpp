@@ -6,17 +6,21 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
-#include "ardrone_moves/EnableController.h"
+#include "ardrone_moves/SwitchOnOff.h"
 #include "visualization_msgs/Marker.h"
 #include <tf/transform_listener.h>
+
+//#define DEBUG_POS_CONTROLLER_OUTPUTS
 
 static boolean_T OverrunFlag = 0;
 bool _enabled=false;
 
 ros::Publisher twistPublisher;
 ros::Publisher epsPublisher;
+#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 ros::Publisher odomSpeedPublisher;
 ros::Publisher vis_pub;
+#endif
 
 geometry_msgs::Twist twist;
 
@@ -31,13 +35,25 @@ void rt_OneStep(void)
 }
 
 
-bool setEnabled(ardrone_moves::EnableController::Request &req,
-								ardrone_moves::EnableController::Response &res){
+bool setEnabled(ardrone_moves::SwitchOnOff::Request &req,
+								ardrone_moves::SwitchOnOff::Response &res){
 	_enabled=req.enable;
 	if(_enabled){
 		ROS_INFO("position tracking enabled");
 	}else{
 		ROS_INFO("position tracking disabled");
+	}
+	return true;
+}
+
+bool setRelativeYaw(ardrone_moves::SwitchOnOff::Request &req,
+								ardrone_moves::SwitchOnOff::Response &res){
+	if(req.enable){
+		ROS_INFO("yaw command is relative to drone direction");
+		Pos_Controller_U.yaw_is_relative=1;
+	}else{
+		ROS_INFO("yaw command is absolute in reference frame");
+		Pos_Controller_U.yaw_is_relative=0;
 	}
 	return true;
 }
@@ -52,9 +68,11 @@ void target_callback(const geometry_msgs::Pose::ConstPtr& consigne){
 
 void transform_callback(tf::StampedTransform transform){
 	geometry_msgs::Pose epsilon;
-	nav_msgs::Odometry odomSpeed;
 	double roll,pitch,yaw;
+#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 	visualization_msgs::Marker marker, marker_loc;
+	nav_msgs::Odometry odomSpeed;
+#endif
 
 	if(_enabled){
 		Pos_Controller_U.position[0]=transform.getOrigin().x();
@@ -77,6 +95,7 @@ void transform_callback(tf::StampedTransform transform){
 		//twist.angular.z=Pos_Controller_Y.yawcmd/360;
 		//twist.angular.z=0;
 		
+#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 		//assert length are equals in absolute and drone speed
 		real_T err=pow(Pos_Controller_Y.speedcmd[0],2)+pow(Pos_Controller_Y.speedcmd[1],2)-pow(Pos_Controller_Y.absolute_speedcmd[0],2)-pow(Pos_Controller_Y.absolute_speedcmd[1],2);
 		if(err>0.00001 || err <-0.00001){
@@ -140,7 +159,7 @@ void transform_callback(tf::StampedTransform transform){
 			marker_loc.color.a = 1.0;
 			vis_pub.publish( marker_loc );
 		}
-
+#endif
 
 		twistPublisher.publish(twist);
 		epsPublisher.publish(epsilon);
@@ -162,11 +181,14 @@ int main(int argc,  char *argv[]){
 	ros::Subscriber consigneSubscriber = nh.subscribe("/position_target",1,target_callback);
 	tf::TransformListener tf_listener;
 	twistPublisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",1);
-	odomSpeedPublisher = nh.advertise<nav_msgs::Odometry>("/absolute_speed_command",1);
 	epsPublisher = nh.advertise<geometry_msgs::Pose>("eps",1);
+#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 	vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
+	odomSpeedPublisher = nh.advertise<nav_msgs::Odometry>("/absolute_speed_command",1);
+#endif
 
 	ros::ServiceServer enable_service = nh.advertiseService("enable",setEnabled);
+	ros::ServiceServer switch_rel_yaw = nh.advertiseService("enable_relative_yaw",setRelativeYaw);
 
 	ros::Rate rate(5.0);
   while (ros::ok() && rtmGetErrorStatus(Pos_Controller_M) == (NULL)) {
