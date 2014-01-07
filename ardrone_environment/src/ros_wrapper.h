@@ -3,9 +3,12 @@
 
 #include <QObject>
 #include <QThread>
-#include "map2d.h"
+#include "environment2d.h"
 
 #include "ardrone_environment/ARDroneMapSrv.h"
+#include "ardrone_environment/ARDroneTagListSrv.h"
+#include "ardrone_environment/ARDronePosition2D.h"
+#include "ardrone_environment/ARDroneMission.h"
 
 class ros_wrapper : public QThread
 {
@@ -15,14 +18,22 @@ public:
 
     void run();
 
-    static void storeMap2D(Map2D *map);
+    void end();
+
+    static void storeEnvironment2D(Environment2D *environment);
     static bool sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req, ardrone_environment::ARDroneMapSrv::Response &res);
+    static bool sendTagList(ardrone_environment::ARDroneTagListSrv::Request &req, ardrone_environment::ARDroneTagListSrv::Response &res);
+
+    static void storeMission(const ardrone_environment::ARDroneMission::ConstPtr& mission);
+    static void locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr& msg);
+
 signals:
+    void environmentImagePublished(IplImage *);
 
 public slots:
 
 private:
-    static Map2D *p_map;
+    static Environment2D *p_environment;
     bool m_isRunning;
 
 };

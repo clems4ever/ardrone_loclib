@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE RelWithDebInfo)
+#set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
 
@@ -23,11 +23,14 @@ rosbuild_gensrv()
 
 # ARDroneEnvironment
 FIND_PACKAGE(Qt4 REQUIRED)
+SET(QT_USE_QTXML TRUE)
+#find_package(Qt5Xml)
 
 include_directories("srv_gen/cpp/include")
+include_directories("msg_gen/cpp/include")
 #SET(ardrone_environment_DIR src/ardrone_environment)
-SET(ardrone_environment_SOURCES src/main.cpp src/environmentengine.cpp src/map2d.cpp src/ros_wrapper.cpp)
-SET(ardrone_environment_HEADERS src/environmentengine.h src/map2d.h src/ros_wrapper.h)
+SET(ardrone_environment_SOURCES src/main.cpp src/ardroneenvironment.cpp src/environmentengine.cpp src/environment2d.cpp src/ros_wrapper.cpp src/mainwindow.cpp)
+SET(ardrone_environment_HEADERS src/environmentengine.h src/ardroneenvironment.h src/environment2d.h src/ros_wrapper.h src/mainwindow.h src/cvimageviewer.h)
 
 QT4_WRAP_CPP(ardrone_environment_HEADERS_MOC ${ardrone_environment_HEADERS})
 
@@ -38,11 +41,3 @@ rosbuild_add_executable(ardrone_environment ${ardrone_environment_SOURCES}
     ${ardrone_environment_HEADERS_MOC})
 TARGET_LINK_LIBRARIES(ardrone_environment ${QT_LIBRARIES})
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#rosbuild_add_executable(odom_to_path src/rviz_tools/odom_to_path.cpp)
-#target_link_libraries(example ${PROJECT_NAME})

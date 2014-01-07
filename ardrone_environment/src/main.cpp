@@ -1,18 +1,20 @@
 
-#include <QCoreApplication>
+#include <QApplication>
 
-#include "environmentengine.h"
+#include "ardroneenvironment.h"
 
 #include "ros/ros.h"
 
 int main(int argc, char **argv)
 {
-    QCoreApplication app(argc, argv);
+    QApplication app(argc, argv);
+    QApplication::setQuitOnLastWindowClosed(false);
     ros::init(argc, argv, "ardrone_environment", ros::init_options::NoSigintHandler);
     qDebug("ARDrone Environment starting...");
-    EnvironmentEngine engine;
+    ARDroneEnvironment ardroneEnvironment;
+    ardroneEnvironment.start();
 
-    engine.start();
+
     //qDebug("ARDrone Environment node is ending...");
 
     return app.exec();

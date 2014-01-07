@@ -1,11 +1,7 @@
 <package>
   <description brief="localization and movement tools for AR.Drone">
-
-		ardrone_loclib is developped by INSA Toulouse (France) students. Its purpose is to provide tools for localization and
-		movement in partially known outdoor environement.
-		It provides tool for GPS management, visual odometry, tag detection, state estimation, GUI...
-
   </description>
+
   <author>clems</author>
   <author>Jules</author>
   <author>Jeri</author>

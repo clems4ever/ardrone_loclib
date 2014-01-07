@@ -4,7 +4,8 @@
 #include <QObject>
 #include "ros_wrapper.h"
 
-class Map2D;
+class Environment2D;
+class MainWindow;
 
 class EnvironmentEngine : public QObject
 {
@@ -14,17 +15,22 @@ public:
     virtual ~EnvironmentEngine();
 
     void start();
+    void quit();
+
+    // Loads params from a xml configuration file
+    void loadConfiguration(const QString& configFilename);
+
+    const Environment2D& getEnvironment() const;
 
 
 signals:
+    void environmentImagePublished(IplImage *);
 
 public slots:
-    void cleanup();
 
 private:
-    Map2D *p_map;
+    Environment2D *p_environment;
     ros_wrapper m_rosWrapper;
-
 };
 
 #endif // ENVIRONMENTENGINE_H

@@ -30,6 +30,11 @@ cmake_install.cmake
 
 *.pro*
 
+# Qt generated build directory
+*build*
 
 # ROS generated dirs
 *_gen/
+
+# Temporary files
+*~*
