@@ -10,7 +10,10 @@ Environment2D::Environment2D(const QString &backgroundFilename, const QString &w
     p_tilesArray = 0;
     QImage wallMaskImage(wallMaskFilename);
     QImage tagMaskImage(tagMaskFilename);
-    m_dronePosition = QPoint(0,0);
+    m_dronePosition = DoublePoint(0,0);
+    m_scale.set(1.0, 1.0);
+    m_lastTagId = 0;
+
     Tag tag;
     int currentTag = 0;
 
@@ -60,7 +63,8 @@ Environment2D::Environment2D(const QString &backgroundFilename, const QString &w
         {
             if((tagMaskImage.pixel(x, y) & 0x00FFFFFF) == 0)
             {
-                tag.id = currentTag++;
+                tag.id = m_lastTagId++;
+                tag.code = currentTag++;
                 tag.value = "";
                 tag.x = x;
                 tag.y = y;
@@ -71,6 +75,8 @@ Environment2D::Environment2D(const QString &backgroundFilename, const QString &w
 }
 
 
+/** @brief Destroys the pointer representing the map
+  */
 Environment2D::~Environment2D()
 {
     if(p_tilesArray == 0)
@@ -90,14 +96,35 @@ Environment2D::Tile Environment2D::getTile(int x, int y) const
     return p_tilesArray[x][y];
 }
 
+void Environment2D::appendTag(const Tag &t)
+{
+    m_tagList.append(t);
+}
+
 
 /** @brief Gets the environment size, i.e. width and height.
   */
-QSize Environment2D::getSize() const
+const QSize& Environment2D::getSize() const
 {
     return m_size;
 }
 
+/** @brief Gets the drone current position
+  */
+const Environment2D::DoublePoint &Environment2D::getDronePosition() const
+{
+    return m_dronePosition;
+}
+
+/** @brief Gets the stored scale that get the image pixels positions
+*/
+const Environment2D::DoublePoint &Environment2D::getScale() const
+{
+    return m_scale;
+}
+
+/** @brief Sets a mission path which is a list of DoublePoint
+  */
 void Environment2D::setMission(const Path &p)
 {
     m_missionPath = p;
@@ -118,14 +145,18 @@ IplImage* Environment2D::qImage2IplImage(const QImage &qImage)
     return imgHeader;
 }
 
+/** @brief Converts a CV image from a Qt Image
+  */
 IplImage* Environment2D::getCvImage()
 {
     return Environment2D::qImage2IplImage(m_currentEnvironmentImage);
 }
 
-
+/** @brief Computes the image representing the environment
+  */
 void Environment2D::computeImage()
 {
+    QPen pen;
     m_currentEnvironmentImage = QImage(m_size, QImage::Format_ARGB32);
     QPainter m_painter(&m_currentEnvironmentImage);
 
@@ -139,7 +170,6 @@ void Environment2D::computeImage()
     int xmax = m_size.width();
     int ymax = m_size.height();
 
-    m_painter.setPen(QColor(255, 0, 0, 100));
 
     // For all pixels on the map, draw the walls.
     for(int y=0; y<ymax; y++)
@@ -148,18 +178,13 @@ void Environment2D::computeImage()
         {
             if(p_tilesArray[x][y] == Environment2D::WALL)
             {
-                m_painter.setPen(QColor(0, 0, 255, 100));
+                m_painter.setPen(QColor(255, 0, 0, 100));
                 m_painter.drawPoint(x*voffset, y*hoffset);
             }
-
-            /*if(p_tilesArray[x][y] == Map2D::TAG)
-            {
-                m_painter.setPen(QColor(0, 255, 0, 255));
-                m_painter.drawEllipse(x*voffset, y*hoffset, 8, 8);
-            }*/
         }
     }
 
+    // Draws the tags
     for(int i=0; i < m_tagList.size(); i++)
     {
         Tag tag;
@@ -169,14 +194,17 @@ void Environment2D::computeImage()
     }
 
     // Draws the mission path
-    m_painter.setPen(QColor(0, 255, 0, 255));
+    pen.setColor(QColor(0,255,0,255));
+    pen.setWidth(2.0);
+    m_painter.setPen(pen);
     for(int i=0; i<m_missionPath.size(); i++)
     {
-        m_painter.drawPoint(m_missionPath.at(i));
+        DoublePoint p = m_missionPath.at(i);
+        m_painter.drawPoint(QPoint(p.x() * m_scale.x(), p.y() * m_scale.y()));
     }
 
-    QPen pen;
-    pen.setColor(QColor(0,0,255,255));
+    // Draws the drone 3 circles
+    pen.setColor(QColor(0,255,0,255));
     pen.setWidth(1);
     m_painter.setPen(pen);
 
@@ -188,9 +216,12 @@ void Environment2D::computeImage()
     //m_painter.end();
 }
 
+/** @brief Refreshes the drone position
+  */
 void Environment2D::updateDronePosition(int x, int y)
 {
-    m_dronePosition = QPoint(x, y);
+    m_dronePosition = DoublePoint(x, y);
+    emit dronePositionUpdated();
 }
 
 

@@ -15,13 +15,14 @@ EnvironmentEngine::EnvironmentEngine(QObject *parent) :
     m_rosWrapper.storeEnvironment2D(p_environment);
 
     connect(&m_rosWrapper, SIGNAL(environmentImagePublished(IplImage*)), this, SIGNAL(environmentImagePublished(IplImage*)));
+    connect(p_environment, SIGNAL(dronePositionUpdated()), this, SIGNAL(dronePositionUpdated()));
 }
 
 EnvironmentEngine::~EnvironmentEngine()
 {
 }
 
-/** @brief starts the ros wrapper thread.
+/** @brief Starts the ros wrapper thread.
   *
   */
 void EnvironmentEngine::start()
@@ -40,7 +41,7 @@ void EnvironmentEngine::quit()
     while(!m_rosWrapper.isFinished());
 }
 
-/** @brief Load a configuration from a .conf file (XML) where all parameters will be stored.
+/** @brief Loads a configuration from a .conf file (XML) where all parameters will be stored.
   *
   */
 void EnvironmentEngine::loadConfiguration(const QString &configFilename)
@@ -50,7 +51,19 @@ void EnvironmentEngine::loadConfiguration(const QString &configFilename)
     document.setContent(&configFile);
 }
 
+/** @brief Returns a reference to the environment
+  */
 const Environment2D& EnvironmentEngine::getEnvironment() const
 {
     return *p_environment;
+}
+
+void EnvironmentEngine::addTag()
+{
+    Environment2D::Tag t;
+    t.id = -1;
+    t.x = -1;
+    t.y = -1;
+    p_environment->appendTag(t);
+    emit tagListUpdated();
 }

@@ -106,17 +106,16 @@ bool ros_wrapper::sendTagList(ardrone_environment::ARDroneTagListSrv::Request &r
 void ros_wrapper::storeMission(const ardrone_environment::ARDroneMission::ConstPtr &mission)
 {
     qDebug("Store mission callback");
-    Path p;
+    Environment2D::Path p;
     for(unsigned int i=0; i<mission->positions.size(); i++)
     {
-        p.append(QPoint(mission->positions.at(i).x, mission->positions.at(i).y));
+        p.append(Environment2D::DoublePoint(mission->positions.at(i).x, mission->positions.at(i).y));
     }
     p_environment->setMission(p);
 }
 
 void ros_wrapper::locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr &msg)
 {
-    //qDebug("ARDronePosition2D updated");
     p_environment->updateDronePosition(msg->x, msg->y);
 }
 

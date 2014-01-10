@@ -19,6 +19,8 @@ signals:
     
 public slots:
     void cleanQuit();
+    void refreshDronePosition();
+    void refreshTagsTable();
     
 private:
     EnvironmentEngine *p_environmentEngine;
