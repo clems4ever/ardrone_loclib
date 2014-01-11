@@ -17,53 +17,62 @@
 #include <termios.h>		/* POSIX terminal control definitions */
 #include <stdlib.h>
 
+typedef enum{NO_CHANGE, DEFAULT, GGA, RMC, RMC_GGA}output_sel_t;
+
 int i;
 char c;
 int com_fd;
 
-char *RobotComFilename = "/dev/ttyUSB0";
+char *ComFilename = "/dev/ttyUSB0";
 //chaines de configuration de la puce GPS Pmod (global top)
 char *pmtk_test = "$PMTK000*32\r\n";	//trame de test
 char *pmtk_b9600 = "$PMTK251,9600*17\r\n";	//baudrate 9600
 char *pmtk_b38400 = "$PMTK251,38400*27\r\n";	//       38400
+char *pmtk_b115200 = "$PMTK251,115200*1F\r\n";	//       115200
 char *pmtk_r10hz = "$PMTK220,100*2F\r\n";	//position update 10hz
 char *pmtk_r1hz = "$PMTK220,1000*1F\r\n";	//                1hz
 char *pmtk_r5hz = "$PMTK220,200*2C\r\n";	//                5hz
 char *pmtk_sel_rmc_gga = "$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n";	//n'envoie que les trames NMEA RMC et GGA
+char *pmtk_sel_gga = "$PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n";	//n'envoie que les trames NMEA GGA
+char *pmtk_sel_rmc = "$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n";	//n'envoie que les trames NMEA RMC
+char *pmtk_sel_default = "$PMTK314,-1*04\r\n";	//reglage par defaut
 
 /* Variable pour select */
 fd_set set;
 struct timeval timeout;
 
 void printhelp(void){
-	printf("this is a tool to communicate with Pmod GPS device\n"
-		"via serial - usb converter. It was developed for ftdi ttl 232R 3V3 chip.\n"
+	printf("this is a tool for communicating with Pmod GPS device\n"
+		"via serial - usb converter. It was developed for ftdi ttl 232R 3V3 chip,\n"
+		"but may work with other GPS devices and usb-ttl adapters\n"
 		"\n"
 		"Option are:\n"
-		"-b	set baudrate (9600 38400 115200)\n"
-		"-r	read device and print to stdout\n"
-		"-h	print this help message\n"
-		"-B N	change GPS chip baudrate and exit N=[9600 | 38400 | 115200]\n"
-		"-t	test the GPS sending a null message, then read\n"
-		"-S	put GPS in simple mode : only send GGA and RMC strings\n"
-		"-u N	set update rate of gps fix [1 5 10] Hz\n"
+		"-F <device>\tthe device file (default is /dev/ttyUSB0)\n"
+		"-b\tset baudrate (9600 38400 115200) default is 9600 baud\n"
+		"-B N\tchange GPS chip baudrate and exit N=[9600 | 38400 | 115200]\n"
+		"-r\tread communication and print to stdout\n"
+		"-h\tprint this help message\n"
+		"-t\ttest the GPS sending a null message, then read\n"
+		"-S\tput GPS in simple mode : only send GGA and RMC strings equivalent\nto -o simple\n"
+		"-u N\tset update rate of gps fix [1 5 10] Hz\n"
+		"-o <mode>\tchange output options of NMEA sentences. Possible options\n\tare default, gga, rmc, rmc+gga, simple (equivalent to rmc+gga)\n"
 		"\n");
 	exit(EXIT_SUCCESS);
 }
 
-int d_robot_open_device(speed_t baudrate)
+int open_device(speed_t baudrate)
 {
 	struct termios options;
 
 	int fd;			/* File descriptor for the port */
-	fd = open(RobotComFilename, O_RDWR | O_NOCTTY | O_NDELAY);
+	fd = open(ComFilename, O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd == -1) {
 		/* Could not open the port. */
 		fprintf(stderr, "[Error %d] : Can't open device file %s\n", -1,
-			RobotComFilename);
+			ComFilename);
 		return -1;
 	} else {
-		printf("Opened %s successfully\n", RobotComFilename);
+		printf("Opened %s successfully\n", ComFilename);
 	}
 
 	tcflush(fd, TCIOFLUSH);
@@ -85,7 +94,7 @@ int d_robot_open_device(speed_t baudrate)
 
 	if (tcsetattr(fd, TCSANOW, &options) == -1) {
 		printf
-		    ("impossible de changer la configuration du port serie %s\n", RobotComFilename);
+		    ("impossible de changer la configuration du port serie %s\n", ComFilename);
 		exit(EXIT_FAILURE);
 	}
 	com_fd = fd;
@@ -99,19 +108,19 @@ int d_robot_open_device(speed_t baudrate)
 	return 1;
 }
 
-void d_robot_send_char(char c)
+void send_char(char c)
 {
 	write(com_fd, &c, 1);
 }
 
-void d_robot_send_string(char *s)
+void send_string(char *s)
 {
 	do{
-		d_robot_send_char(*s);
+		send_char(*s);
 	} while (*(s++) != '\n');
 }
 
-void d_robot_get_char(char *c)
+void get_char(char *c)
 {
 	int n;
 	int delay;
@@ -134,14 +143,14 @@ int main(int argc, char **argv)
 	int c;
 	int i = 0;
 	speed_t baudrate=B9600;
-	printf("C'est parti \n");
-	char mode=0;
+	char go_simple=0;
 	char read=0;
 	char set_speed=0;
 	char test=0;
 	char change_baudrate=0;
+	output_sel_t output_mode=NO_CHANGE;
 
-	while ((c = getopt (argc, argv, "b:B:hrtSs:")) != -1)
+	while ((c = getopt (argc, argv, "b:B:hrtSu:F:o:")) != -1)
 		switch (c){
 			case 'b':
 				if(strncmp(optarg,"9600",4)==0)
@@ -173,22 +182,28 @@ int main(int argc, char **argv)
 					printhelp();
 				break;
 			case 'S':
-				mode='S';
+				go_simple=1;
 				break;
-			case 's':
+			case 'u':
 				set_speed=atoi(optarg);
 				if(set_speed!=10 && set_speed!=1 && set_speed!=5)
 					printhelp();
-				/*
-				if(strncmp(optarg,"1",1))
-					set_speed=1;
-				else if(strncmp(optarg,"5",1))
-					set_speed=5;
-				else if(strncmp(optarg,"10",2))
-					set_speed=10;
-				else
+				break;
+			case 'F':
+				ComFilename=optarg;
+				break;
+			case 'o':
+				if(strncmp(optarg,"default",7)==0){
+					output_mode=DEFAULT;
+				}else if (strncmp(optarg,"rmc",3)==0){
+					output_mode=RMC;
+				}else if (strncmp(optarg,"gga",3)==0){
+					output_mode=GGA;
+				}else if ((strncmp(optarg,"rmc+gga",7)==0) || (strncmp(optarg,"simple",6)==0)){
+					output_mode = RMC_GGA ;
+				}else{
 					printhelp();
-					*/
+				}
 				break;
 			case '?':
 				if(optopt=='b')
@@ -206,54 +221,79 @@ int main(int argc, char **argv)
 					break;
 		}
 
-	d_robot_open_device(baudrate);
+	if(change_baudrate && read)
+		printf("You have to restart the program with -b NEWBAUDRATE -r to be able to read the device\n");
 
-	switch (mode){
-			break;
-		case 'S':
-			d_robot_send_string(pmtk_sel_rmc_gga);
-			break;
-		default:
-			break;
+	if(set_speed>1 && baudrate==B9600){
+		printf("Changing update rate to something else than 1Hz requires a higher baudrate\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(open_device(baudrate)!=1){
+		exit(EXIT_FAILURE);
+	}
+
+	if(go_simple){
+		send_string(pmtk_sel_rmc_gga);
 	}
 
 	if(test)
 		for (i=0;i<10;i++){
-			d_robot_send_string(pmtk_test);
+			send_string(pmtk_test);
 		}
-
-	if(change_baudrate){
-		switch (change_baudrate){
-			case '3':
-				d_robot_send_string(pmtk_b38400);
-				exit(EXIT_SUCCESS);
-				break;
-			case '9':
-				d_robot_send_string(pmtk_b9600);
-				exit(EXIT_SUCCESS);
-				break;
-		}
-	}
 
 	if(set_speed){
 		switch(set_speed){
 			case 1:
-				d_robot_send_string(pmtk_r1hz);
+				send_string(pmtk_r1hz);
 				break;
 			case 5:
-				d_robot_send_string(pmtk_r5hz);
+				send_string(pmtk_r5hz);
 				break;
 			case 10:
-				d_robot_send_string(pmtk_r10hz);
+				send_string(pmtk_r10hz);
 				break;
 			default:
 				printhelp();
 		}
 	}
 
+	switch (output_mode){
+		case RMC:
+			send_string(pmtk_sel_rmc);
+			break;
+		case GGA:
+			send_string(pmtk_sel_gga);
+			break;
+		case RMC_GGA:
+			send_string(pmtk_sel_rmc_gga);
+			break;
+		case DEFAULT:
+			send_string(pmtk_sel_default);
+			break;
+		default:
+			break;
+	}
+
+	if(change_baudrate){
+		switch (change_baudrate){
+			case '3':
+				send_string(pmtk_b38400);
+				exit(EXIT_SUCCESS);
+				break;
+			case '9':
+				send_string(pmtk_b9600);
+				exit(EXIT_SUCCESS);
+				break;
+			case '1':
+				send_string(pmtk_b115200);
+				exit(EXIT_SUCCESS);
+				break;
+		}
+	}
 
 	while(read){
-		d_robot_get_char(&data);
+		get_char(&data);
 		printf("%c", data);
 	}
 	return 0;

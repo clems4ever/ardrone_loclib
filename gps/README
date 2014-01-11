@@ -13,6 +13,8 @@ Possible options are:
 -S	    put GPS in simple mode : only send GGA and RMC strings equivalent
         to -o simple
 -u N	  set update rate of gps fix [1 5 10] Hz
+        Note that to enable 5Hz or 10Hz update rate, you first need to
+        select a baudrate of 38400 as minimum.
 -o <mode> change output options of NMEA sentences. Possible options
 	      are default, gga, rmc, rmc+gga, simple (equivalent to rmc+gga)
 
@@ -25,7 +27,7 @@ Related PTMK sentences are:
    38400  : $PMTK251,38400*27$
    115200 : $PMTK251,115200*1F$
 
--s 10 : $PMTK220,100*2F$
+-u 10 : $PMTK220,100*2F$
    1  : $PMTK220,1000*1F$
    5  : $PMTK220,200*2C$
 
