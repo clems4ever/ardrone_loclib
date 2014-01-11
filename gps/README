@@ -1,0 +1,49 @@
+gpsUsb is a simple tool for configuring the PmodGPS board (and maybe other GPS board)
+
+It uses a set of predefined commands to configure the gps chip.
+Possible options are:
+-F <device> the device file (default is /dev/ttyUSB0)
+-b	    set baudrate (9600 38400 115200) default is 9600 baud
+-B N    change GPS chip baudrate and exit N=[9600 | 38400 | 115200]
+-r      read communication and print to stdout
+        cannot be used in combination with -B (an error message will be
+        displayed, but the program just ignore -r option)
+-h	    print this help message
+-t	    test the GPS sending a null message, then read
+-S	    put GPS in simple mode : only send GGA and RMC strings equivalent
+        to -o simple
+-u N	  set update rate of gps fix [1 5 10] Hz
+-o <mode> change output options of NMEA sentences. Possible options
+	      are default, gga, rmc, rmc+gga, simple (equivalent to rmc+gga)
+
+
+Related PTMK sentences are:
+
+-t : $PMTK000*32$
+
+-B 9600   : $PMTK251,9600*17$
+   38400  : $PMTK251,38400*27$
+   115200 : $PMTK251,115200*1F$
+
+-s 10 : $PMTK220,100*2F$
+   1  : $PMTK220,1000*1F$
+   5  : $PMTK220,200*2C$
+
+-o rmc+gga : $PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28$
+   gga     : $PMTK314,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29$
+   rmc     : $PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29$
+   default : $PMTK314,-1*04$
+
+
+Acknowledgements:
+
+GPS board sends PMTK_ACK packets when it receives a PMTK request
+These ACK sentences are like this:
+     $PMTK001,Cmd,Flag*checksum
+Where Cmd is the PMTK request flag (e.g 251 for a baudrate change) and flag
+is:
+     0 = invalid command
+     1 = unsupported command
+     2 = valid command, but action failed
+     3 = valid commad, action succeeded
+
