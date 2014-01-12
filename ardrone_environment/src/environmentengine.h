@@ -25,8 +25,11 @@ public:
 
 signals:
     void environmentImagePublished(IplImage *);
+    void dronePositionUpdated();
+    void tagListUpdated();
 
 public slots:
+    void addTag();
 
 private:
     Environment2D *p_environment;

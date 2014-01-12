@@ -22,6 +22,12 @@ ARDroneEnvironment::ARDroneEnvironment(QObject *parent) :
 
     // The window has been closed with the window close event
     connect(p_mainWindow, SIGNAL(closing()), this, SLOT(cleanQuit()));
+
+    connect(p_environmentEngine, SIGNAL(dronePositionUpdated()), this, SLOT(refreshDronePosition()));
+
+    // Refreshes tag table
+    connect(p_mainWindow, SIGNAL(addTagAsked()), p_environmentEngine, SLOT(addTag()));
+    connect(p_environmentEngine, SIGNAL(tagListUpdated()), this, SLOT(refreshTagsTable()));
 }
 
 /**
@@ -43,3 +49,15 @@ void ARDroneEnvironment::cleanQuit()
 
     qApp->quit();
 }
+
+
+void ARDroneEnvironment::refreshDronePosition()
+{
+    p_mainWindow->refreshDronePosition(p_environmentEngine->getEnvironment().getDronePosition());
+}
+
+void ARDroneEnvironment::refreshTagsTable()
+{
+    p_mainWindow->fillTagsTable(p_environmentEngine->getEnvironment().getTagsList());
+}
+
