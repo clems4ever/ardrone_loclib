@@ -1,0 +1,38 @@
+diff -ur viso2.old/viso2_ros/src/odometer_base.h viso2/viso2_ros/src/odometer_base.h
+--- viso2.old/viso2_ros/src/odometer_base.h	2014-01-12 17:52:18.046157000 +0100
++++ viso2/viso2_ros/src/odometer_base.h	2014-01-12 18:00:13.878157000 +0100
+@@ -9,6 +9,8 @@
+ #include <tf/transform_listener.h>
+ #include <tf/transform_broadcaster.h>
+ 
++#include <boost/assign/list_of.hpp>
++
+ namespace viso2_ros
+ {
+ 
+@@ -204,8 +206,23 @@
+       }
+     }
+ 
+-    odometry_msg.pose.covariance = pose_covariance_;
+-    odometry_msg.twist.covariance = twist_covariance_;
++    //odometry_msg.pose.covariance = pose_covariance_;
++    //odometry_msg.twist.covariance = twist_covariance_;
++
++    odometry_msg.pose.covariance = boost::assign::list_of(0.33)(0)(0)(0)(0)(0)
++                                                         (0)(0.33)(0)(0)(0)(0)
++                                                         (0)(0)(999999)(0)(0)(0)
++                                                         (0)(0)(0)(999999)(0)(0)
++                                                         (0)(0)(0)(0)(999999)(0)
++                                                         (0)(0)(0)(0)(0)(0.33);
++
++    odometry_msg.twist.covariance = boost::assign::list_of(0.33)(0)(0)(0)(0)(0)
++                                                          (0)(0.33)(0)(0)(0)(0)
++                                                          (0)(0)(999999)(0)(0)(0)
++                                                          (0)(0)(0)(999999)(0)(0)
++                                                          (0)(0)(0)(0)(999999)(0)
++                                                          (0)(0)(0)(0)(0)(0.33);
++
+     odom_pub_.publish(odometry_msg);
+     
+     geometry_msgs::PoseStamped pose_msg;

@@ -1,0 +1,135 @@
+diff -ur Roxannews/viso2/libviso2/libviso2/src/viso_mono.h viso2/libviso2/libviso2/src/viso_mono.h
+--- Roxannews/viso2/libviso2/libviso2/src/viso_mono.h	2014-01-10 16:13:36.829841000 +0100
++++ viso2/libviso2/libviso2/src/viso_mono.h	2014-01-12 17:20:21.694157000 +0100
+@@ -30,17 +30,19 @@
+ 
+   // monocular-specific parameters (mandatory: height,pitch)
+   struct parameters : public VisualOdometry::parameters {
+-    double                      height;           // camera height above ground (meters)
+-    double                      pitch;            // camera pitch (rad, negative=pointing down)
+-    int32_t                     ransac_iters;     // number of RANSAC iterations
+-    double                      inlier_threshold; // fundamental matrix inlier threshold
+-    double                      motion_threshold; // directly return false on small motions
++    double                      height;            // camera height above ground (meters)
++    double                      pitch;             // camera pitch (rad, negative=pointing down)
++    int32_t                     ransac_iters;      // number of RANSAC iterations
++    double                      inlier_threshold;  // fundamental matrix inlier threshold
++    double                      motion_threshold;  // directly return false on small motions
++    double                      visual_covariance; // custom visual covariance. Used because of covariance publication issues in ROS 
+     parameters () {
+-      height           = 1.0;
+-      pitch            = 0.0;
+-      ransac_iters     = 2000;
+-      inlier_threshold = 0.00001;
+-      motion_threshold = 100.0;
++      height            = 1.0;
++      pitch             = 0.0;
++      ransac_iters      = 2000;
++      inlier_threshold  = 0.00001;
++      motion_threshold  = 100.0;
++      visual_covariance = 0.33; // initialization value if not set 
+     }
+   };
+ 
+diff -ur Roxannews/viso2/viso2_ros/src/odometer_base.h viso2/viso2_ros/src/odometer_base.h
+--- Roxannews/viso2/viso2_ros/src/odometer_base.h	2014-01-10 16:13:36.829841000 +0100
++++ viso2/viso2_ros/src/odometer_base.h	2014-01-12 17:16:46.714157000 +0100
+@@ -9,6 +9,8 @@
+ #include <tf/transform_listener.h>
+ #include <tf/transform_broadcaster.h>
+ 
++#include <boost/assign/list_of.hpp>
++
+ namespace viso2_ros
+ {
+ 
+@@ -49,6 +51,9 @@
+   boost::array<double, 36> pose_covariance_;
+   boost::array<double, 36> twist_covariance_;
+ 
++  // custom covariance
++  double visual_covariance_;
++
+ public:
+ 
+   OdometerBase()
+@@ -60,11 +65,14 @@
+     local_nh.param("base_link_frame_id", base_link_frame_id_, std::string("/base_link"));
+     local_nh.param("sensor_frame_id", sensor_frame_id_, std::string("/camera"));
+     local_nh.param("publish_tf", publish_tf_, true);
++    local_nh.param("visual_covariance", visual_covariance_, 0.0);
+ 
+     ROS_INFO_STREAM("Basic Odometer Settings:" << std::endl <<
+                     "  odom_frame_id      = " << odom_frame_id_ << std::endl <<
+                     "  base_link_frame_id = " << base_link_frame_id_ << std::endl <<
+-                    "  publish_tf         = " << (publish_tf_?"true":"false"));
++                    "  sensor_frame_id    = " << sensor_frame_id_ << std::endl <<
++                    "  publish_tf         = " << (publish_tf_?"true":"false") << std::endl <<
++                    "  visual_covariance  = " << visual_covariance_);
+     
+     // advertise
+     odom_pub_ = local_nh.advertise<nav_msgs::Odometry>("odometry", 1);
+@@ -204,8 +212,23 @@
+       }
+     }
+ 
+-    odometry_msg.pose.covariance = pose_covariance_;
+-    odometry_msg.twist.covariance = twist_covariance_;
++//    odometry_msg.pose.covariance = pose_covariance_;
++//    odometry_msg.twist.covariance = twist_covariance_;
++
++    odometry_msg.pose.covariance = boost::assign::list_of(visual_covariance_)(0)(0)(0)(0)(0)
++                                                         (0)(visual_covariance_)(0)(0)(0)(0)
++                                                         (0)(0)(999999)(0)(0)(0)
++                                                         (0)(0)(0)(999999)(0)(0)
++                                                         (0)(0)(0)(0)(999999)(0)
++                                                         (0)(0)(0)(0)(0)(visual_covariance_);
++
++    odometry_msg.twist.covariance = boost::assign::list_of(visual_covariance_)(0)(0)(0)(0)(0)
++                                                          (0)(visual_covariance_)(0)(0)(0)(0)
++                                                          (0)(0)(999999)(0)(0)(0)
++                                                          (0)(0)(0)(999999)(0)(0)
++                                                          (0)(0)(0)(0)(999999)(0)
++                                                          (0)(0)(0)(0)(0)(visual_covariance_);
++
+     odom_pub_.publish(odometry_msg);
+     
+     geometry_msgs::PoseStamped pose_msg;
+diff -ur Roxannews/viso2/viso2_ros/src/odometry_params.h viso2/viso2_ros/src/odometry_params.h
+--- Roxannews/viso2/viso2_ros/src/odometry_params.h	2014-01-10 16:13:36.829841000 +0100
++++ viso2/viso2_ros/src/odometry_params.h	2014-01-12 17:16:46.714157000 +0100
+@@ -58,11 +58,15 @@
+   }
+   if (!local_nh.getParam("camera_pitch", params.pitch))
+   {
+-    ROS_WARN("Paramter 'camera_pitch' is required but not set. Using default: %f", params.pitch);
++    ROS_WARN("Parameter 'camera_pitch' is required but not set. Using default: %f", params.pitch);
+   }
+   local_nh.getParam("ransac_iters",     params.ransac_iters);
+   local_nh.getParam("inlier_threshold", params.inlier_threshold);
+   local_nh.getParam("motion_threshold", params.motion_threshold);
++  if (!local_nh.getParam("visual_covariance", params.visual_covariance))
++  {
++    ROS_WARN("Parameter 'visual_covariance' is required but not set. Using default: %f", params.visual_covariance);
++  }
+ }
+ 
+ } // end of namespace
+@@ -121,11 +125,12 @@
+ {
+   out << static_cast<VisualOdometry::parameters>(params);
+   out << "Mono odometry parameters:" << std::endl;
+-  out << "  camera_height    = " << params.height << std::endl;
+-  out << "  camera_pitch     = " << params.pitch << std::endl;
+-  out << "  ransac_iters     = " << params.ransac_iters << std::endl;
+-  out << "  inlier_threshold = " << params.inlier_threshold << std::endl;
+-  out << "  motion_threshold = " << params.motion_threshold << std::endl;
++  out << "  camera_height     = " << params.height << std::endl;
++  out << "  camera_pitch      = " << params.pitch << std::endl;
++  out << "  ransac_iters      = " << params.ransac_iters << std::endl;
++  out << "  inlier_threshold  = " << params.inlier_threshold << std::endl;
++  out << "  motion_threshold  = " << params.motion_threshold << std::endl;
++  out << "  visual_covariance = " << params.visual_covariance << std::endl;
+   return out;
+ }
+ 
