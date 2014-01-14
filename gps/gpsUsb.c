@@ -1,11 +1,11 @@
 /**
  * \file gpsusb1.c
  * \brief Test d'une communication par XBee sur un AR Drone 2.0
- * \author S. Di Mercurio et P.-E. Hladik  ++ J Waldhart
+ * \author Jules Waldhart based on example program by S. Di Mercurio et P.-E. Hladik  ++ J Waldhart
  * \version 1.0
  * \date janvier 2014
  *
- * Test d'une communication XBee sur AR Drone
+ * Pmos GPS board control and configuration tool
  *
  */
 
@@ -14,6 +14,7 @@
 #include <unistd.h>		/* UNIX standard function definitions */
 #include <fcntl.h>		/* File control definitions */
 #include <errno.h>		/* Error number definitions */
+#include <ctype.h>		/* use of isprint() */
 #include <termios.h>		/* POSIX terminal control definitions */
 #include <stdlib.h>
 
