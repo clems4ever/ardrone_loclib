@@ -1,0 +1,30 @@
+<package>
+  <description brief="localization and movement tools for AR.Drone">
+  </description>
+
+  <author>clems</author>
+  <author>Jules</author>
+  <author>Jeri</author>
+  <author>Pierre</author>
+  <author>Yves</author>
+	<maintainer>INSA Toulouse</maintainer>
+
+  <license>BSD</license>
+
+  <review status="unreviewed" notes=""/>
+
+	<url>https://github.com/clems4ever/ardrone_loclib/ardrone_environment</url>
+
+	<buildtool_depend>rosbuild</buildtool_depend>
+
+	<depend package="roscpp"/>
+	<depend package="rospy"/>
+	<depend package="std_msgs"/>
+	<depend package="ardrone_environment"/>
+
+	<run_depend>roscpp</run_depend>
+	<run_depend>rospy</run_depend>
+	<run_depend>std_msgs</run_depend>
+
+</package>
+
