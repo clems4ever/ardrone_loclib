@@ -6,8 +6,9 @@
 #include <QAction>
 #include <QPushButton>
 #include <QFormLayout>
+#include <QVariant>
 
-#include "environment2d.h"
+#include "environmentengine.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -19,12 +20,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //menuBar->setVisible(true);
     QMenu *fileMenu = new QMenu("File", menuBar);
+
+    QAction *openConfigurationAction = new QAction("Open", fileMenu);
+    QAction *saveConfigurationAction = new QAction("Save", fileMenu);
+
     QAction *closeAction = new QAction("Quit", fileMenu);
 
-
+    fileMenu->addAction(openConfigurationAction);
+    fileMenu->addAction(saveConfigurationAction);
+    fileMenu->addSeparator();
     fileMenu->addAction(closeAction);
     menuBar->addMenu(fileMenu);
     this->setMenuBar(menuBar);
+
+    p_imageViewer = new MapViewer();
 
 
     //************************ Drone info **************************
@@ -33,11 +42,25 @@ MainWindow::MainWindow(QWidget *parent) :
     p_dronePositionLineEdit = new QLineEdit();
     p_dronePositionLineEdit->setEnabled(false);
 
-    p_droneScaleLineEdit = new QLineEdit();
-    p_droneScaleLineEdit->setEnabled(false);
+    p_droneScaleXLineEdit = new QDoubleSpinBox();
+    p_droneScaleYLineEdit = new QDoubleSpinBox();
+    p_droneScaleXLineEdit->setRange(0.00001, 1000000.0);
+    p_droneScaleYLineEdit->setRange(0.00001, 1000000.0);
+    p_droneScaleXLineEdit->setValue(1.0);
+    p_droneScaleYLineEdit->setValue(1.0);
+
+    p_droneOffsetXLineEdit = new QDoubleSpinBox();
+    p_droneOffsetYLineEdit = new QDoubleSpinBox();
+    p_droneOffsetXLineEdit->setRange(-DBL_MAX, DBL_MAX);
+    p_droneOffsetYLineEdit->setRange(-DBL_MAX, DBL_MAX);
 
     droneInfo->addRow(new QLabel("Drone position"), p_dronePositionLineEdit);
-    //droneInfo->addRow(new QLabel("Map scale"), p_droneScaleLineEdit);
+    droneInfo->addRow(new QLabel("Scale X"), p_droneScaleXLineEdit);
+    droneInfo->addRow(new QLabel("Scale Y"), p_droneScaleYLineEdit);
+
+    droneInfo->addRow(new QLabel("Offset X"), p_droneOffsetXLineEdit);
+    droneInfo->addRow(new QLabel("Offset Y"), p_droneOffsetYLineEdit);
+
 
 
     //**************************************************************
@@ -45,11 +68,11 @@ MainWindow::MainWindow(QWidget *parent) :
     //************************ Tag list ****************************
 
     p_tagsTableWidget = new QTableWidget();
-    p_tagsTableWidget->setColumnCount(3);
+    p_tagsTableWidget->setColumnCount(4);
+    p_tagsTableWidget->setAlternatingRowColors(true);
 
 
     QPushButton *p_addButton = new QPushButton("Add");
-    connect(p_addButton, SIGNAL(clicked()), this, SIGNAL(addTagAsked()));
     QPushButton *p_removeButton = new QPushButton("Remove");
 
     QHBoxLayout *tagButtonshlay = new QHBoxLayout();
@@ -67,7 +90,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //********************** CentralWidget **************************
 
     QHBoxLayout *hbox = new QHBoxLayout();
-    p_imageViewer = new CvImageViewer();
 
     hbox->addLayout(tagvlay,3);
     hbox->addWidget(p_imageViewer,7);
@@ -81,9 +103,22 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setCentralWidget(centralWidget);
 
     connect(closeAction, SIGNAL(triggered()), this, SIGNAL(quitAsked()));
+    connect(openConfigurationAction, SIGNAL(triggered()), this, SIGNAL(openConfigurationAsked()));
+    connect(saveConfigurationAction, SIGNAL(triggered()), this, SIGNAL(saveConfigurationAsked()));
+
+    connect(p_droneOffsetXLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(offsetXChanged(double)));
+    connect(p_droneOffsetXLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshOffsetX(double)));
+    connect(p_droneOffsetYLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(offsetYChanged(double)));
+    connect(p_droneOffsetYLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshOffsetY(double)));
+
+    connect(p_droneScaleXLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(scaleXChanged(double)));
+    connect(p_droneScaleXLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScaleX(double)));
+    connect(p_droneScaleYLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(scaleYChanged(double)));
+    connect(p_droneScaleYLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScaleY(double)));
+
+    connect(p_addButton, SIGNAL(clicked()), this, SIGNAL(addTagAsked()));
 
 
-    //mainLayout->addWidget(p_tableWidget);
 }
 
 /** @brief Gets the closedEvent to quit the application
@@ -93,35 +128,61 @@ void MainWindow::closeEvent(QCloseEvent *event)
     emit closing();
 }
 
-void MainWindow::fillTagsTable(const QList<Environment2D::Tag> &tagsList)
+void MainWindow::refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList)
 {
+    disconnect(p_tagsTableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(validItemChange(QTableWidgetItem*)));
     p_tagsTableWidget->clear();
     p_tagsTableWidget->setRowCount(tagsList.size());
     QStringList headersList;
-    headersList << "Code" << "Value" << "Position";
+    headersList << "Code" << "Value" << "X" << "Y";
     p_tagsTableWidget->setHorizontalHeaderLabels(headersList);
     QTableWidgetItem *item;
     int newRow;
     for(int i=0; i<tagsList.size(); i++)
     {
-        item = new QTableWidgetItem(QString("%1").arg(tagsList.at(i).id));
+        item = new QTableWidgetItem(QString("%1").arg(tagsList.at(i).code));
         p_tagsTableWidget->setItem(i, 0, item);
-        item = new QTableWidgetItem(QString("(%1,%2)").arg((double)tagsList.at(i).x).arg((double)tagsList.at(i).y));
+        item = new QTableWidgetItem(QString("%1").arg(tagsList.at(i).value));
+        p_tagsTableWidget->setItem(i, 1, item);
+        item = new QTableWidgetItem(QString("%1").arg((double)tagsList.at(i).x));
         p_tagsTableWidget->setItem(i, 2, item);
+        item = new QTableWidgetItem(QString("%1").arg((double)tagsList.at(i).y));
+        p_tagsTableWidget->setItem(i, 3, item);
     }
+    connect(p_tagsTableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(validItemChange(QTableWidgetItem*)));
 }
 
 
 /** @brief Refreshes the environment image in the GUI
   */
-void MainWindow::refreshEnvironmentImage(IplImage *image)
+void MainWindow::refreshEnvironmentImage(IplImage *img)
 {
-    cv::Mat m(image);
+    cv::Mat m(img);
     p_imageViewer->showImage(m);
 }
 
-void MainWindow::refreshDronePosition(const Environment2D::DoublePoint &position)
+void MainWindow::validItemChange(QTableWidgetItem *item)
 {
-    p_dronePositionLineEdit->setText(QString("(%1,%2)").arg(position.x()).arg(position.y()));
+    int pos = item->row();
+    QString code = p_tagsTableWidget->item(pos, 0)->text();
+    QString value = p_tagsTableWidget->item(pos, 1)->text();
+    double x = p_tagsTableWidget->item(pos, 2)->text().toDouble();
+    double y = p_tagsTableWidget->item(pos, 3)->text().toDouble();
+    qDebug(QString("row %1 has changed, code %2").arg(pos).arg(code).toStdString().c_str());
+
+    emit tagChanged(pos, code, value, x, y);
+}
+
+void MainWindow::refreshDronePosition(const EnvironmentEngine::DoublePoint &p)
+{
+    p_dronePositionLineEdit->setText(QString("(%1,%2)").arg(p.x()).arg(p.y()));
+}
+
+void MainWindow::refreshOffsetAndScale(const EnvironmentEngine::DoublePoint &offset, const EnvironmentEngine::DoublePoint &scale)
+{
+    p_droneOffsetXLineEdit->setValue(offset.x());
+    p_droneOffsetYLineEdit->setValue(offset.y());
+    p_droneScaleXLineEdit->setValue(scale.x());
+    p_droneScaleYLineEdit->setValue(scale.y());
 }
 

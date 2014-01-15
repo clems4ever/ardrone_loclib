@@ -22,15 +22,15 @@ SOURCES += \
     main.cpp \
     environmentengine.cpp \
     ros_wrapper.cpp \
-    environment2d.cpp \
     ardroneenvironment.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    mapviewer.cpp
 
 
 HEADERS += \
     environmentengine.h \
     ros_wrapper.h \
-    environment2d.h \
     ardroneenvironment.h \
     mainwindow.h \
-    cvimageviewer.h
+    cvimageviewer.h \
+    mapviewer.h

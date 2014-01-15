@@ -1,3 +1,3 @@
 uint16 id
-uint32 x
-uint32 y
+float64 x
+float64 y

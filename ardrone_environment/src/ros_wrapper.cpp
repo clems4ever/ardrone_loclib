@@ -1,11 +1,14 @@
 #include "ros_wrapper.h"
 
+#include "environmentengine.h"
+
+#include "opencv/cv.h"
 #include "ros/ros.h"
 #include "image_transport/image_transport.h"
 #include "opencv/cvwimage.h"
 #include "cv_bridge/CvBridge.h"
 
-Environment2D* ros_wrapper::p_environment = 0;
+EnvironmentEngine* ros_wrapper::p_environment = 0;
 
 ros_wrapper::ros_wrapper(QObject *parent) :
     QThread(parent)
@@ -17,7 +20,7 @@ void ros_wrapper::run()
 {
     ros::NodeHandle n;
     image_transport::ImageTransport it(n);
-    ros::Rate loop_rate(4);
+    ros::Rate loop_rate(5);
 
     ros::ServiceServer s1 = n.advertiseService("ardrone_loclib_map", ros_wrapper::sendStaticMap);
     ros::ServiceServer s2 = n.advertiseService("ardrone_loclib_tags", ros_wrapper::sendTagList);
@@ -29,14 +32,13 @@ void ros_wrapper::run()
     ros::Subscriber su2 = n.subscribe("ardrone_loclib_position2d", 1000, ros_wrapper::locateDrone);
     IplImage *img;
 
-    //ROS_INFO("Node is ready.");
     while(ros::ok()){
-        if(p_environment != 0)
+        if(p_environment != 0 && p_environment->ready())
         {
             p_environment->computeImage();
             img = p_environment->getCvImage();
-            msg = sensor_msgs::CvBridge::cvToImgMsg(img, "rgba8");
-            environmentPublisher.publish(msg);
+            //msg = sensor_msgs::CvBridge::cvToImgMsg(img, "rgba8");
+            //environmentPublisher.publish(msg);
             emit environmentImagePublished(img);
         }
 
@@ -52,7 +54,7 @@ void ros_wrapper::end()
     ros::shutdown();
 }
 
-void ros_wrapper::storeEnvironment2D(Environment2D *env)
+void ros_wrapper::storeEnvironmentEngine(EnvironmentEngine *env)
 {
     ros_wrapper::p_environment = env;
 }
@@ -92,7 +94,7 @@ bool ros_wrapper::sendTagList(ardrone_environment::ARDroneTagListSrv::Request &r
     res.tagList.resize(p_environment->getTagsList().size());
     for(int i=0; i<p_environment->getTagsList().size(); i++)
     {
-        Environment2D::Tag tag = p_environment->getTagsList().at(i);
+        EnvironmentEngine::Tag tag = p_environment->getTagsList().at(i);
         res.tagList.at(i).x = tag.x;
         res.tagList.at(i).y = tag.y;
     }
@@ -106,10 +108,10 @@ bool ros_wrapper::sendTagList(ardrone_environment::ARDroneTagListSrv::Request &r
 void ros_wrapper::storeMission(const ardrone_environment::ARDroneMission::ConstPtr &mission)
 {
     qDebug("Store mission callback");
-    Environment2D::Path p;
+    EnvironmentEngine::Path p;
     for(unsigned int i=0; i<mission->positions.size(); i++)
     {
-        p.append(Environment2D::DoublePoint(mission->positions.at(i).x, mission->positions.at(i).y));
+        p.append(EnvironmentEngine::DoublePoint(mission->positions.at(i).x, mission->positions.at(i).y));
     }
     p_environment->setMission(p);
 }

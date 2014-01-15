@@ -26,11 +26,8 @@ FIND_PACKAGE(Qt4 REQUIRED)
 SET(QT_USE_QTXML TRUE)
 #find_package(Qt5Xml)
 
-include_directories("srv_gen/cpp/include")
-include_directories("msg_gen/cpp/include")
-#SET(ardrone_environment_DIR src/ardrone_environment)
-SET(ardrone_environment_SOURCES src/main.cpp src/ardroneenvironment.cpp src/environmentengine.cpp src/environment2d.cpp src/ros_wrapper.cpp src/mainwindow.cpp)
-SET(ardrone_environment_HEADERS src/environmentengine.h src/ardroneenvironment.h src/environment2d.h src/ros_wrapper.h src/mainwindow.h src/cvimageviewer.h)
+SET(ardrone_environment_SOURCES src/main.cpp src/ardroneenvironment.cpp src/environmentengine.cpp src/ros_wrapper.cpp src/mainwindow.cpp src/mapviewer.cpp)
+SET(ardrone_environment_HEADERS src/environmentengine.h src/ardroneenvironment.h src/ros_wrapper.h src/mainwindow.h src/cvimageviewer.h src/mapviewer.h)
 
 QT4_WRAP_CPP(ardrone_environment_HEADERS_MOC ${ardrone_environment_HEADERS})
 

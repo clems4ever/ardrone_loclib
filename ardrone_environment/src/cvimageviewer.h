@@ -21,12 +21,6 @@ public:
     QSize sizeHint() const { return _qimage.size(); }
     QSize minimumSizeHint() const { return _qimage.size(); }
 
-    void mouseMoveEvent(QMouseEvent *ev)
-    {
-        m_mousex = ev->pos().x();
-        m_mousey = ev->pos().y();
-    }
-
 public slots:
 
     void showImage(const cv::Mat& image) {
@@ -61,10 +55,6 @@ protected:
         // Display the image
         QPainter painter(this);
         painter.drawImage(QPoint(0,0), _qimage);
-        QRect r(20, 20, 60, 20);
-        painter.fillRect(r, QColor(255,255,255, 150));
-        painter.setPen(QColor(Qt::blue));
-        painter.drawText(r, QString("%1,%2").arg(m_mousex).arg(m_mousey));
         painter.end();
     }
 

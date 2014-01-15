@@ -3,12 +3,15 @@
 
 #include <QObject>
 #include <QThread>
-#include "environment2d.h"
+
+#include "opencv/cv.h"
 
 #include "ardrone_environment/ARDroneMapSrv.h"
 #include "ardrone_environment/ARDroneTagListSrv.h"
 #include "ardrone_environment/ARDronePosition2D.h"
 #include "ardrone_environment/ARDroneMission.h"
+
+class EnvironmentEngine;
 
 class ros_wrapper : public QThread
 {
@@ -20,7 +23,7 @@ public:
 
     void end();
 
-    static void storeEnvironment2D(Environment2D *environment);
+    static void storeEnvironmentEngine(EnvironmentEngine *environment);
     static bool sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req, ardrone_environment::ARDroneMapSrv::Response &res);
     static bool sendTagList(ardrone_environment::ARDroneTagListSrv::Request &req, ardrone_environment::ARDroneTagListSrv::Response &res);
 
@@ -33,7 +36,7 @@ signals:
 public slots:
 
 private:
-    static Environment2D *p_environment;
+    static EnvironmentEngine *p_environment;
     bool m_isRunning;
 
 };

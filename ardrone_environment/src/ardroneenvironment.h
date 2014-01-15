@@ -21,6 +21,9 @@ public slots:
     void cleanQuit();
     void refreshDronePosition();
     void refreshTagsTable();
+
+    void saveConfiguration();
+    void loadConfiguration();
     
 private:
     EnvironmentEngine *p_environmentEngine;

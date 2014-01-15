@@ -371,21 +371,6 @@ src/ardroneenvironment.s:
 .PHONY : src/ardroneenvironment.s
 
 # target to build an object file
-src/environment2d.o:
-	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/environment2d.o
-.PHONY : src/environment2d.o
-
-# target to preprocess a source file
-src/environment2d.i:
-	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/environment2d.i
-.PHONY : src/environment2d.i
-
-# target to generate assembly for a file
-src/environment2d.s:
-	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/environment2d.s
-.PHONY : src/environment2d.s
-
-# target to build an object file
 src/environmentengine.o:
 	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/environmentengine.o
 .PHONY : src/environmentengine.o
@@ -431,6 +416,21 @@ src/mainwindow.s:
 .PHONY : src/mainwindow.s
 
 # target to build an object file
+src/mapviewer.o:
+	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/mapviewer.o
+.PHONY : src/mapviewer.o
+
+# target to preprocess a source file
+src/mapviewer.i:
+	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/mapviewer.i
+.PHONY : src/mapviewer.i
+
+# target to generate assembly for a file
+src/mapviewer.s:
+	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/mapviewer.s
+.PHONY : src/mapviewer.s
+
+# target to build an object file
 src/moc_ardroneenvironment.o:
 	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_ardroneenvironment.o
 .PHONY : src/moc_ardroneenvironment.o
@@ -461,21 +461,6 @@ src/moc_cvimageviewer.s:
 .PHONY : src/moc_cvimageviewer.s
 
 # target to build an object file
-src/moc_environment2d.o:
-	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_environment2d.o
-.PHONY : src/moc_environment2d.o
-
-# target to preprocess a source file
-src/moc_environment2d.i:
-	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_environment2d.i
-.PHONY : src/moc_environment2d.i
-
-# target to generate assembly for a file
-src/moc_environment2d.s:
-	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_environment2d.s
-.PHONY : src/moc_environment2d.s
-
-# target to build an object file
 src/moc_environmentengine.o:
 	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_environmentengine.o
 .PHONY : src/moc_environmentengine.o
@@ -504,6 +489,21 @@ src/moc_mainwindow.i:
 src/moc_mainwindow.s:
 	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_mainwindow.s
 .PHONY : src/moc_mainwindow.s
+
+# target to build an object file
+src/moc_mapviewer.o:
+	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_mapviewer.o
+.PHONY : src/moc_mapviewer.o
+
+# target to preprocess a source file
+src/moc_mapviewer.i:
+	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_mapviewer.i
+.PHONY : src/moc_mapviewer.i
+
+# target to generate assembly for a file
+src/moc_mapviewer.s:
+	$(MAKE) -f CMakeFiles/ardrone_environment.dir/build.make CMakeFiles/ardrone_environment.dir/src/moc_mapviewer.s
+.PHONY : src/moc_mapviewer.s
 
 # target to build an object file
 src/moc_ros_wrapper.o:
@@ -566,9 +566,6 @@ help:
 	@echo "... src/ardroneenvironment.o"
 	@echo "... src/ardroneenvironment.i"
 	@echo "... src/ardroneenvironment.s"
-	@echo "... src/environment2d.o"
-	@echo "... src/environment2d.i"
-	@echo "... src/environment2d.s"
 	@echo "... src/environmentengine.o"
 	@echo "... src/environmentengine.i"
 	@echo "... src/environmentengine.s"
@@ -578,21 +575,24 @@ help:
 	@echo "... src/mainwindow.o"
 	@echo "... src/mainwindow.i"
 	@echo "... src/mainwindow.s"
+	@echo "... src/mapviewer.o"
+	@echo "... src/mapviewer.i"
+	@echo "... src/mapviewer.s"
 	@echo "... src/moc_ardroneenvironment.o"
 	@echo "... src/moc_ardroneenvironment.i"
 	@echo "... src/moc_ardroneenvironment.s"
 	@echo "... src/moc_cvimageviewer.o"
 	@echo "... src/moc_cvimageviewer.i"
 	@echo "... src/moc_cvimageviewer.s"
-	@echo "... src/moc_environment2d.o"
-	@echo "... src/moc_environment2d.i"
-	@echo "... src/moc_environment2d.s"
 	@echo "... src/moc_environmentengine.o"
 	@echo "... src/moc_environmentengine.i"
 	@echo "... src/moc_environmentengine.s"
 	@echo "... src/moc_mainwindow.o"
 	@echo "... src/moc_mainwindow.i"
 	@echo "... src/moc_mainwindow.s"
+	@echo "... src/moc_mapviewer.o"
+	@echo "... src/moc_mapviewer.i"
+	@echo "... src/moc_mapviewer.s"
 	@echo "... src/moc_ros_wrapper.o"
 	@echo "... src/moc_ros_wrapper.i"
 	@echo "... src/moc_ros_wrapper.s"

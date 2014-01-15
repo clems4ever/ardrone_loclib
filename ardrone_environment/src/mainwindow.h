@@ -7,9 +7,10 @@
 #include <QTableWidget>
 #include <QLineEdit>
 #include <QLabel>
+#include <QSpinBox>
 
-#include "cvimageviewer.h"
-#include "environment2d.h"
+#include "mapviewer.h"
+#include "environmentengine.h"
 
 class MainWindow : public QMainWindow
 {
@@ -19,28 +20,44 @@ public:
 
     void closeEvent(QCloseEvent *);
 
-    void fillTagsTable(const QList<Environment2D::Tag> &tagsList);
-    void refreshDronePosition(const Environment2D::DoublePoint& position);
-    
+    void refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList);
+    void refreshDronePosition(const EnvironmentEngine::DoublePoint& position);
+
+    void refreshOffsetAndScale(const EnvironmentEngine::DoublePoint& offset, const EnvironmentEngine::DoublePoint& scale);
+
 signals:
     void quitAsked();
+    void openConfigurationAsked();
+    void saveConfigurationAsked();
     void closing();
 
     void addTagAsked();
-    
+
+    void offsetXChanged(double);
+    void offsetYChanged(double);
+
+    void scaleXChanged(double);
+    void scaleYChanged(double);
+
+    void tagChanged(int pos, QString code, QString value, double x, double y);
+
 public slots:
     void refreshEnvironmentImage(IplImage *);
-
+    void validItemChange(QTableWidgetItem* item);
 
 private:
+    EnvironmentEngine *p_environmentEngine;
     QTableWidget *p_tagsTableWidget;
 
-    CvImageViewer *p_imageViewer;
+    MapViewer *p_imageViewer;
 
     // Drone position line edit displayed in the info widget on the right side
     QLineEdit *p_dronePositionLineEdit;
     QLineEdit *p_droneScaleLineEdit;
-    
+
+    QDoubleSpinBox *p_droneScaleXLineEdit, *p_droneScaleYLineEdit;
+    QDoubleSpinBox *p_droneOffsetXLineEdit, *p_droneOffsetYLineEdit;
+
 };
 
 #endif // SETTINGSWIDGET_H
