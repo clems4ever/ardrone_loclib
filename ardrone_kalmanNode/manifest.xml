@@ -1,0 +1,17 @@
+<package>
+  <description brief="ardrone_kalmanNode">
+
+     ardrone_kalmanNode
+
+  </description>
+  <author>Dim2k</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/ardrone_kalmanNode</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
