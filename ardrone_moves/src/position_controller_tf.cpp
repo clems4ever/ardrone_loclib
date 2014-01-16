@@ -7,17 +7,21 @@
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
 #include "ardrone_moves/SwitchOnOff.h"
-#include "visualization_msgs/Marker.h"
 #include <tf/transform_listener.h>
 
 //#define DEBUG_POS_CONTROLLER_OUTPUTS
+//use only if you have debug outputs in ert generated files
+//see used fields of Pos_Controller_Y between #ifdef DEBUG_POS_CONTROLLER_OUTPUTS and #endif
+#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
+#include "visualization_msgs/Marker.h"
+#endif
 
 static boolean_T OverrunFlag = 0;
 bool _enabled=false;
 
 ros::Publisher twistPublisher;
-ros::Publisher epsPublisher;
 #ifdef DEBUG_POS_CONTROLLER_OUTPUTS
+ros::Publisher epsPublisher;
 ros::Publisher odomSpeedPublisher;
 ros::Publisher vis_pub;
 #endif
@@ -63,39 +67,39 @@ void target_callback(const geometry_msgs::Pose::ConstPtr& consigne){
 	Pos_Controller_U.consigne[1]=consigne->position.y;
 	Pos_Controller_U.consigne[2]=consigne->position.z;
 	Pos_Controller_U.yaw_cons=consigne->orientation.z;
-	ROS_INFO("new consigne : %f %f %f",Pos_Controller_U.consigne[0],Pos_Controller_U.consigne[1],Pos_Controller_U.consigne[2]);
+	ROS_DEBUG("new consigne : %f %f %f",Pos_Controller_U.consigne[0],Pos_Controller_U.consigne[1],Pos_Controller_U.consigne[2]);
 }
 
 void transform_callback(tf::StampedTransform transform){
-	geometry_msgs::Pose epsilon;
 	double roll,pitch,yaw;
+
+	Pos_Controller_U.position[0]=transform.getOrigin().x();
+	Pos_Controller_U.position[1]=transform.getOrigin().y();
+	Pos_Controller_U.position[2]=transform.getOrigin().z();
+	tf::Matrix3x3(transform.getRotation()).getRPY(roll,pitch,yaw);
+	Pos_Controller_U.yaw=yaw;
+	ROS_INFO("new position : %f %f %f %f",Pos_Controller_U.position[0],Pos_Controller_U.position[1],Pos_Controller_U.position[2], yaw);
+
+}
+
+void step_PID(void){
 #ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 	visualization_msgs::Marker marker, marker_loc;
 	nav_msgs::Odometry odomSpeed;
 #endif
-
 	if(_enabled){
-		Pos_Controller_U.position[0]=transform.getOrigin().x();
-		Pos_Controller_U.position[1]=transform.getOrigin().y();
-		Pos_Controller_U.position[2]=transform.getOrigin().z();
-		tf::Matrix3x3(transform.getRotation()).getRPY(roll,pitch,yaw);
-		Pos_Controller_U.yaw=yaw;
-		ROS_INFO("new position : %f %f %f %f",Pos_Controller_U.position[0],Pos_Controller_U.position[1],Pos_Controller_U.position[2], yaw);
-
 		rt_OneStep();
 
+		twist.linear.x=Pos_Controller_Y.speedcmd[0];
+		twist.linear.y=Pos_Controller_Y.speedcmd[1];
+		twist.linear.z=Pos_Controller_Y.speedcmd[2];
+		twist.angular.z=Pos_Controller_Y.yawcmd;
+
+#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 		epsilon.position.x=-Pos_Controller_U.position[0]+Pos_Controller_U.consigne[0];
 		epsilon.position.y=-Pos_Controller_U.position[1]+Pos_Controller_U.consigne[1];
 		epsilon.position.z=-Pos_Controller_U.position[2]+Pos_Controller_U.consigne[2];
 
-		twist.linear.x=Pos_Controller_Y.speedcmd[0]/0.34;
-		twist.linear.y=Pos_Controller_Y.speedcmd[1]/0.34;
-		twist.linear.z=Pos_Controller_Y.speedcmd[2]/5;
-		twist.angular.z=Pos_Controller_Y.yawcmd/100;
-		//twist.angular.z=Pos_Controller_Y.yawcmd/360;
-		//twist.angular.z=0;
-		
-#ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 		//assert length are equals in absolute and drone speed
 		real_T err=pow(Pos_Controller_Y.speedcmd[0],2)+pow(Pos_Controller_Y.speedcmd[1],2)-pow(Pos_Controller_Y.absolute_speedcmd[0],2)-pow(Pos_Controller_Y.absolute_speedcmd[1],2);
 		if(err>0.00001 || err <-0.00001){
@@ -159,10 +163,10 @@ void transform_callback(tf::StampedTransform transform){
 			marker_loc.color.a = 1.0;
 			vis_pub.publish( marker_loc );
 		}
+		epsPublisher.publish(epsilon);
 #endif
 
 		twistPublisher.publish(twist);
-		epsPublisher.publish(epsilon);
 	}
 }
 
@@ -172,8 +176,9 @@ int main(int argc,  char *argv[]){
 
 	Pos_Controller_U.consigne[0]=0;
 	Pos_Controller_U.consigne[1]=0;
-	Pos_Controller_U.consigne[2]=0;
+	Pos_Controller_U.consigne[2]=1;
 	Pos_Controller_U.yaw_cons=0;
+	Pos_Controller_U.yaw_is_relative=0;
 
   /* Initialize model */
   Pos_Controller_initialize();
@@ -181,8 +186,8 @@ int main(int argc,  char *argv[]){
 	ros::Subscriber consigneSubscriber = nh.subscribe("/position_target",1,target_callback);
 	tf::TransformListener tf_listener;
 	twistPublisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",1);
-	epsPublisher = nh.advertise<geometry_msgs::Pose>("eps",1);
 #ifdef DEBUG_POS_CONTROLLER_OUTPUTS
+	epsPublisher = nh.advertise<geometry_msgs::Pose>("eps",1);
 	vis_pub = nh.advertise<visualization_msgs::Marker>( "visualization_marker", 0 );
 	odomSpeedPublisher = nh.advertise<nav_msgs::Odometry>("/absolute_speed_command",1);
 #endif
@@ -204,6 +209,7 @@ int main(int argc,  char *argv[]){
 			transform_callback(transform);
 		}
 		ros::spinOnce();
+		step_PID();
 		rate.sleep();
   }
 

@@ -1,0 +1,14 @@
+<launch>
+	<arg name="lat" />
+	<arg name="long" />
+
+	<node pkg="gps_common" type="utm_odometry_node" name="convert_gps_to_odom" output="screen" required="true">
+		<param name="frame_id" value="base_gps"/>
+		<remap from="/fix" to="/convert/gps/fix"/>
+		<remap from="/odom" to="/convert/gps_odom"/>
+	</node>
+
+	<node pkg="rostopic" type="rostopic" name="gps_position_pub" args="pub /convert/gps/fix sensor_msgs/NavSatFix  &quot;{header: { seq: 1, stamp: {secs: 1, nsecs: 1}, frame_id: '' }, status: { status: 0, service: 1 }, latitude: $(arg lat), longitude: $(arg long), altitude: 0, position_covariance: [17.131, 0.0, 0.0, 0.0, 27.003, 0.0, 0.0, 0.0, 21.62], position_covariance_type: 2} &quot; -1" required="true"/>
+
+	<node pkg="rostopic" type="rostopic" name="gps_position_odom_echo" args="echo /convert/gps_odom" output="screen"/>
+</launch>
