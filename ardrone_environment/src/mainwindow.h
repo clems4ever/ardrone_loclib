@@ -32,6 +32,7 @@ signals:
     void closing();
 
     void addTagAsked();
+    void removeTagAsked(int pos);
 
     void offsetXChanged(double);
     void offsetYChanged(double);
@@ -43,7 +44,9 @@ signals:
 
 public slots:
     void refreshEnvironmentImage(IplImage *);
-    void validItemChange(QTableWidgetItem* item);
+    void validateItemChange(QTableWidgetItem* item);
+
+    void removeTag();
 
 private:
     EnvironmentEngine *p_environmentEngine;
