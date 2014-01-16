@@ -1,0 +1,57 @@
+<launch>
+
+	<node name="ardrone" pkg="ardrone_autonomy" type="ardrone_driver" clear_params="true">
+	    <param name="outdoor" value="1" />
+	    <param name="max_bitrate" value="4000" />
+	    <param name="bitrate" value="4000" />
+	    <param name="navdata_demo" value="0" />
+	    <param name="flight_without_shell" value="0" />
+	    <param name="altitude_max" value="3000" />
+        <param name="altitude_min" value="50" />
+        <param name="euler_angle_max" value="0.21" />
+        <param name="control_vz_max" value="700" />
+	    <param name="control_yaw" value="1.75" />
+	    <param name="detect_type" value="10" />
+	    <param name="enemy_colors" value="3" />
+	    <param name="detections_select_h" value="32" />
+	    <param name="detections_select_v_hsync" value="128" />
+	    <param name="enemy_without_shell" value="0" />
+	    <param name="do_imu_caliberation" value="true" />
+	    <!--param name="tf_prefix" value="mydrone" /-->
+        <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
+        <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
+        <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
+        <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
+	</node>
+
+	
+	<node name="image_proc" pkg="image_proc" type="image_proc" ns="/ardrone"/>
+
+
+
+
+	<node pkg="viso2_ros" type="mono_odometer" name="mono_odometer">
+		<remap from="image" to="/ardrone/image_rect"/>
+		<param name="camera_height" value="0.050"/>
+		<param name="camera_pitch" value="0.0"/>
+		<param name="max_features" value="50"/>
+		<param name="publish_tf" value="true"/>
+		<param name="sensor_frame_id" type="string" value="/ardrone_base_frontcam"/>
+                <!--param name="motion_threshold" type="double" value="1000.0"/-->
+		<param name="base_link_frame_id" type="string" value="/ardrone_base_link"/>
+		<param name="visual_covariance" type="double" value="0.33"/>
+	</node>
+
+	
+	<!-- viso2 quaternion Initialization-->
+	<node pkg="rosservice" type="rosservice" name="init_quaternion"
+		args="call /mono_odometer/reset_pose"/>
+
+
+
+
+	<node name="rviz" pkg="rviz" type="rviz"
+		args="-d $(optenv PWD)/rviz_config.vcg"/>
+
+
+</launch>
