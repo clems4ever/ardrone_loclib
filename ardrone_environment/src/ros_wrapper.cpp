@@ -16,6 +16,8 @@ ros_wrapper::ros_wrapper(QObject *parent) :
     m_isRunning = true;
 }
 
+/** @brief thread function which is a ros loop that listens and publishes topics.
+  */
 void ros_wrapper::run()
 {
     ros::NodeHandle n;
@@ -49,11 +51,15 @@ void ros_wrapper::run()
     }
 }
 
+/** @brief Ends the ros node
+  */
 void ros_wrapper::end()
 {
     ros::shutdown();
 }
 
+/** @brief Stores a pointer on the environment engine in order to call methods when the wrapper receives data from ROS
+  */
 void ros_wrapper::storeEnvironmentEngine(EnvironmentEngine *env)
 {
     ros_wrapper::p_environment = env;
@@ -116,6 +122,8 @@ void ros_wrapper::storeMission(const ardrone_environment::ARDroneMission::ConstP
     p_environment->setMission(p);
 }
 
+/** @brief Gets the drone position from the topic and refresh its position in the engine.
+  */
 void ros_wrapper::locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr &msg)
 {
     p_environment->updateDronePosition(msg->x, msg->y);
