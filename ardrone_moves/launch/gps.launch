@@ -1,0 +1,22 @@
+<launch>
+	<node pkg="gpsd_client" type="gpsd_client" name="gpsd_client" output="screen" respawn="true">
+    <param name="use_gps_time" value="false"/>
+		<remap from="/fix" to="/ardrone/gps/fix"/>
+		<remap from="/extended_fix" to="/ardrone/gps/extended_fix"/>
+  </node>
+
+	<node pkg="gps_common" type="utm_odometry_node" name="gps_to_odom" output="screen" required="true">
+		<param name="frame_id" value="base_gps"/>
+		<remap from="/fix" to="/ardrone/gps/fix"/>
+		<remap from="/odom" to="/gps_odom"/>
+	</node>
+
+	<node pkg="drone_project" type="odom_to_path" name="odom_to_path_gps" output="screen">
+		<remap from="/odom" to="/gps_odom"/>
+	</node>
+
+	<node pkg="tf" type="static_transform_publisher" name="odom_base_gps" args="0 0 0 0 0 0 /base_gps /odom 100"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="mapTF" args="-376186 -4825319 -164 0 0 0 /map /base_gps 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="geiTF" args="376185.20354 4825370.37057 112 0 0 0 /base_gps /gei 100"/>
+ </launch>
