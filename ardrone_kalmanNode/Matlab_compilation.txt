@@ -1,0 +1,7 @@
+Lors d'une compilation matlab, attention à bien renommer les .obj en .O et les .c en .cpp dans Kalman_matlab/codegen/lib/Kalman_boucle
+
+script pour .obj->.o : rename 's/.obj/.o/' *.obj
+
+
+ne pas faire : rename 's/.c/.cpp/' *.c cela provoque des erreurs dans les noms !!!!!!!!!!!!!
+Faire manuellement pour les .c

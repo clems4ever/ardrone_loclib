@@ -31,103 +31,273 @@
 // %Tag(MSG_HEADER)%
 #include "std_msgs/String.h"
 #include "geometry_msgs/Point.h"
+#include "sensor_msgs/Imu.h"
+#include "geometry_msgs/Vector3.h"
+#include "nav_msgs/Odometry.h"
 
-// %EndTag(MSG_HEADER)%
+#include "rt_nonfinite.h"
+#include "inv.h" 
+#include "Kalman_boucle.h"
 
 #include <sstream>
+#include <ardrone_autonomy/Navdata.h>
+ #include "tum_ardrone/filter_state.h"
 
 /**
  * This tutorial demonstrates simple sending of messages over the ROS system.
  */
+
+// Variables d'acquisition
+double x_imu =0.0;
+double y_imu =0.0;
+
+double x_gps=0.0;
+double y_gps=0.0;
+
+
+double x_tag=0.0;
+double y_tag=0.0;
+
+double x_odom=0.0;
+double y_odom=0.0;
+
+// Variables de KALMAN
+
+// Déclaration des variables du filtre.  
+// Covariance R  
+// Dans un 1er temps on fixe les valeurs de la matrice des covariances
+// Incertitudes = Variance = EcartType²
+    int ErreurGPS = 20; 
+    int ErreurTAG = 0.01;
+    int ErreurODOM = 5;
+    int ErreurA = 2;
+    int ErreurV = ErreurA*ErreurA;
+    double Rgps = ErreurGPS*ErreurGPS;
+    double Rodom = ErreurODOM*ErreurODOM;
+    double Rtag = ErreurTAG*ErreurTAG;
+    double RVimu = ErreurV*ErreurV;
+    double R[64]={     Rgps,     0,       0,       0,       0,       0,       0,       0, 
+                       0,        Rgps,    0,       0,       0,       0,       0,       0,
+                       0,        0,       Rodom,   0,       0,       0,       0,       0,
+                       0,        0,       0,       Rodom,   0,       0,       0,       0,
+                       0,        0,       0,       0,       Rtag,    0,       0,       0,
+                       0,        0,       0,       0,       0,       Rtag,    0,       0,
+                       0,        0,       0,       0,       0,       0,       RVimu,   0,
+                       0,        0,       0,       0,       0,       0,       0,       RVimu};
+
+
+
+
+//Etat précédents des variables dans kalman
+double Xprec[4]={};
+double Pprec[16]={};
+double Zprec[8]={};
+
+//Etat courants des variables de Kalman
+double Z[8]={};
+double Xk[4]={};
+double Pk[16]={};
+double Prediction[4]={};
+
+//Pointeurs pour chaques variables de Kalman
+double *R_point=R;
+double *R_point_precedent=R;
+double *Xprec_point=Xprec;
+double *Pprec_point=Pprec;
+double *Zprec_point=Zprec;
+double *Z_point=Z;
+double *Xk_point=Xk;
+double *Pk_point=Pk;
+double *Prediction_point=Prediction;
+
+//Variables vitesse IMU
+double prevXimu = 0;
+double prevYimu = 0;
+double timeStamp = 0;
+
+
+//Correction du drift
+int state=0;
+int cpt=0;
+double tabX[500]={};
+double tabY[500]={};
+double driftX=0;
+double driftY=0;
+
+//Fraicheur des données
+bool Ftag=false;
+bool Fimu = false;
+bool Fodom = false;
+bool Fgps = false;
+
+//Offset GPS
+double offsetX=0;
+double offsetY=0;
+double timeTAG=0;
+bool stateOffset=false;
+
+
+
+//void messageCallbackIMU(const sensor_msgs::Imu::ConstPtr &msg)
+void messageCallbackIMU(const tum_ardrone::filter_state::ConstPtr &msg)
+{
+
+    x_imu=msg->x-prevXimu+x_tag;
+    y_imu=msg->y-prevYimu+y_tag;
+
+    //Changement de référenciel
+    /*x_imu=msg->x+x_tag;
+      y_imu=msg->y+y_tag;
+    */
+
+
+    prevXimu=x_imu;
+    prevYimu=y_imu;
+
+    Fimu=true;
+
+        
+}
+
+void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
+{
+
+    x_gps=msg->pose.pose.position.x;
+    y_gps=msg->pose.pose.position.y;
+
+    if(stateOffset){
+      if((ros::Time::now().toSec()-timeTAG)<5){
+            offsetX=x_tag-x_gps;
+            offsetY=y_tag-y_gps;
+            stateOffset=false;
+      }
+      else
+        stateOffset=false;
+    }
+
+    x_gps+=offsetX;
+    y_gps+=offsetY;
+
+
+
+    //Variable fraiche
+    Fgps=true;
+   
+}
+
+
+ void messageCallbackODOM(const nav_msgs::Odometry::ConstPtr &msg)
+{
+    x_odom=msg->pose.pose.position.x;
+    y_odom=msg->pose.pose.position.y;
+
+    //Variable fraiche
+    Fodom=true;
+    //ROS_INFO("ODOM -> x_odom: %f, y_odom: %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
+}
+
+ void messageCallbackTAG(const geometry_msgs::Point::ConstPtr &msg)
+{
+
+    x_tag=msg->x;
+    y_tag=msg->y;
+
+    //Variable fraiche
+    Ftag=true;
+
+    //Acquisition du temps pour le calcul de l'offset du GPS
+    timeTAG=ros::Time::now().toSec();
+    stateOffset=true;
+
+}
+
+//Verifie la fraicheur de la données
+//Si fraiche, renvoie la valeurd
+//Si non, renvoie 2000000
+double checkData(bool t, double v, int matrix_zone, int type){
+    
+    double val=0;
+
+    if(t==false){
+      R_point[matrix_zone]=4000;
+      val=v;
+    }
+
+    else {
+      val=v;
+      if(type==1)
+        R_point[matrix_zone]=Rgps;
+      if(type==2)
+        R_point[matrix_zone]=Rodom;
+      if(type==3)
+        R_point[matrix_zone]=Rtag;
+      if(type==4)
+        R_point[matrix_zone]=RVimu;
+    }
+
+    return val;
+  
+}
+
 int main(int argc, char **argv)
 {
-  /**
-   * The ros::init() function needs to see argc and argv so that it can perform
-   * any ROS arguments and name remapping that were provided at the command line. For programmatic
-   * remappings you can use a different version of init() which takes remappings
-   * directly, but for most command-line programs, passing argc and argv is the easiest
-   * way to do it.  The third argument to init() is the name of the node.
-   *
-   * You must call one of the versions of ros::init() before using any other
-   * part of the ROS system.
-   */
-// %Tag(INIT)%
+
+  ROS_INFO("salu");
+
   ros::init(argc, argv, "kalmanNode");
-// %EndTag(INIT)%
 
-  /**
-   * NodeHandle is the main access point to communications with the ROS system.
-   * The first NodeHandle constructed will fully initialize this node, and the last
-   * NodeHandle destructed will close down the node.
-   */
-// %Tag(NODEHANDLE)%
   ros::NodeHandle n;
-// %EndTag(NODEHANDLE)%
+  timeStamp=ros::Time::now().toSec();
 
-  /**
-   * The advertise() function is how you tell ROS that you want to
-   * publish on a given topic name. This invokes a call to the ROS
-   * master node, which keeps a registry of who is publishing and who
-   * is subscribing. After this advertise() call is made, the master
-   * node will notify anyone who is trying to subscribe to this topic name,
-   * and they will in turn negotiate a peer-to-peer connection with this
-   * node.  advertise() returns a Publisher object which allows you to
-   * publish messages on that topic through a call to publish().  Once
-   * all copies of the returned Publisher object are destroyed, the topic
-   * will be automatically unadvertised.
-   *
-   * The second parameter to advertise() is the size of the message queue
-   * used for publishing messages.  If messages are published more quickly
-   * than we can send them, the number here specifies how many messages to
-   * buffer up before throwing some away.
-   */
-// %Tag(PUBLISHER)%
-  //ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
+  //Publisher
   ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("Ardrone_KalmanPos", 10);
-// %EndTag(PUBLISHER)%
+  
+  // Déclaration du message qui servira à publier la position estimée du kalman
+  geometry_msgs::Point positionMsg;
 
-// %Tag(SUBSCRIBER)%
-  //ros::Subscriber IMU_sub = n.subscribe("/ardrone/imu/data", 1000 /*, "function name to call" */);
-  //ros::Subscriber ODOM_pub = n.subscribe("/mono_odometer/odometry", 1000 /*, "function name to call" */);
-  //ros::Subscriber GPS_pub = n.subscribe("/gps", 1000 /*, "function name to call" */);
-  //ros::Subscriber TAG_pub = n.subscribe("/tag", 1000 /*, "function name to call" */);
-// %EndTag(SUBSCRIBER)%
+  //Subscriber
+  ros::Subscriber IMU_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackIMU);
+  ros::Subscriber ODOM_pub = n.subscribe("/odom", 1000,messageCallbackODOM );
+  ros::Subscriber GPS_pub = n.subscribe("/gps", 1000,messageCallbackGPS);
+  ros::Subscriber TAG_pub = n.subscribe("/qrcode", 1000, messageCallbackTAG);
 
-
-
-// %Tag(LOOP_RATE)%
-// refresh rate : 1Hz 
+  //loop rate
   ros::Rate loop_rate(1);
-// %EndTag(LOOP_RATE)%
 
-  /**
-   * A count of how many messages we have sent. This is used to create
-   * a unique string for each message.
-   */
-// %Tag(ROS_OK)%
+
   int count = 0;
   while (ros::ok())
   {
-// %EndTag(ROS_OK)%
-    /**
-     * This is a message object. You stuff it with data, and then publish it.
-     */
-// %Tag(FILL_MESSAGE)%
+
+    //Affectation vecteur de mesure
+    Z[0]=checkData(Fgps,x_gps,0,1);
+    Z[1]=checkData(Fgps,y_gps,9,1);
+    Z[2]=checkData(Fodom,x_odom, 18,2);
+    Z[3]=checkData(Fodom,x_odom, 27,2);
+    Z[4]=checkData(Ftag,x_tag, 36,3);
+    Z[5]=checkData(Ftag,y_tag, 45,3);
+    Z[6]=checkData(Fimu,x_imu, 54,4);
+    Z[7]=checkData(Fimu,y_imu, 63,4);
+
+    //Fonction Kalman Boucle 
+    Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
+
+    //Variables non fraiches
+    Ftag=false;
+    Fodom=false;
+    Fimu=false;
+    Fgps=false;        
+    ROS_INFO("IMU -> x_imu: %f, y_imu: %f",x_imu, y_imu);
+
+     //Mise a jour des variables
+     Zprec_point=Z;  
+     R_point_precedent=R_point;
+     Xprec_point=Xk_point;
+     Pprec_point=Pk_point;
     
-    //std_msgs::String msg;
-    //std::stringstream ss;
-    //ss << "hello world " << count;
-    //msg.data = ss.str();
-    
-    //ardrone_KalmanNode::Ardrone_KalmanPos positionMsg;
-    geometry_msgs::Point positionMsg;
-    positionMsg.x = 1;
-    positionMsg.y = 2;
-    positionMsg.z = 0;
-    
-    
-    
-    ROS_INFO("%s", "test");
+    //Publication de la position issue du Kalman
+    positionMsg.x = Prediction_point[0];
+    positionMsg.y = Prediction_point[1];
 
     KalmanPos_pub.publish(positionMsg);
 
@@ -140,4 +310,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-// %EndTag(FULLTEXT)%
+
