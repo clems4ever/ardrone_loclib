@@ -8,6 +8,9 @@
 #include <QDomDocument>
 #include <QPen>
 #include <QPainter>
+#include <QUrl>
+#include <QDir>
+#include <QFileInfo>
 
 EnvironmentEngine::EnvironmentEngine(QObject *parent) :
     QObject(parent), m_ready(false), m_rosWrapper(this), m_offset(0.0, 0.0), m_scale(1.0, 1.0)
@@ -101,8 +104,10 @@ void EnvironmentEngine::loadConfiguration(const QString &configFilename)
 
     m_lastTagId = 0;
 
-    QString backgroundFilename = document.elementsByTagName("background").at(0).toElement().attribute("file").toLatin1();
-    QString maskFilename = document.elementsByTagName("mask").at(0).toElement().attribute("file").toLatin1();
+    QFileInfo configDir(configFilename);
+    qDebug(configDir.absoluteDir().path().toStdString().c_str());
+    QString backgroundFilename = configDir.path() + "/" + document.elementsByTagName("background").at(0).toElement().attribute("file").toLatin1();
+    QString maskFilename = configDir.path() + "/" + document.elementsByTagName("mask").at(0).toElement().attribute("file").toLatin1();
     m_backgroundImageFilename = backgroundFilename;
     m_maskImageFilename = maskFilename;
 
@@ -137,11 +142,11 @@ void EnvironmentEngine::saveConfiguration(const QString &configFilename)
     doc.appendChild(config);
 
     QDomElement background = doc.createElement("background");
-    background.setAttribute("file", m_backgroundImageFilename);
+    background.setAttribute("file", QFileInfo(m_backgroundImageFilename).fileName());
     config.appendChild(background);
 
     QDomElement mask = doc.createElement("mask");
-    mask.setAttribute("file", m_maskImageFilename);
+    mask.setAttribute("file", QFileInfo(m_maskImageFilename).fileName());
     config.appendChild(mask);
 
     QDomElement offset = doc.createElement("offset");

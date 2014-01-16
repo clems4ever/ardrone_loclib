@@ -92,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     droneInfo->addRow(new QLabel("Offset Y"), p_droneOffsetYLineEdit);
     infoVLay->addLayout(droneInfo);
     infoVLay->addLayout(tagvlay);
+    infoVLay->setMargin(10);
 
     //**************************************************************
 
@@ -102,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
     hbox->addLayout(infoVLay,2);
     hbox->addWidget(p_imageViewer,7, Qt::AlignCenter);
 
+    hbox->setMargin(0);
     centralWidget->setLayout(hbox);
 
 
@@ -178,7 +180,7 @@ void MainWindow::validateItemChange(QTableWidgetItem *item)
     QString value = p_tagsTableWidget->item(pos, 1)->text();
     double x = p_tagsTableWidget->item(pos, 2)->text().toDouble();
     double y = p_tagsTableWidget->item(pos, 3)->text().toDouble();
-    qDebug(QString("row %1 has changed, code %2").arg(pos).arg(code).toStdString().c_str());
+    //qDebug(QString("row %1 has changed, code %2").arg(pos).arg(code).toStdString().c_str());
 
     emit tagChanged(pos, code, value, x, y);
 }
