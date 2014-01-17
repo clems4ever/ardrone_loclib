@@ -94,11 +94,12 @@ public:
 
     static IplImage* qImage2IplImage(const QImage& qImage);
     IplImage *getCvImage();
+    const QImage& getImage() { return m_currentEnvironmentImage; }
 
     const EnvironmentEngine::DoublePoint getImagePoint(const EnvironmentEngine::DoublePoint& p);
 
 signals:
-    void environmentImagePublished(IplImage *);
+    void environmentImagePublished(QImage);
     void dronePositionUpdated();
     void tagListUpdated();
 

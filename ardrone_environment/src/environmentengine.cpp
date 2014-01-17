@@ -20,7 +20,7 @@ EnvironmentEngine::EnvironmentEngine(QObject *parent) :
 
     m_rosWrapper.storeEnvironmentEngine(this);
 
-    connect(&m_rosWrapper, SIGNAL(environmentImagePublished(IplImage*)), this, SIGNAL(environmentImagePublished(IplImage*)));
+    connect(&m_rosWrapper, SIGNAL(environmentImagePublished(QImage)), this, SIGNAL(environmentImagePublished(QImage)));
 }
 
 /** @brief Destroys the pointer representing the map
@@ -64,12 +64,16 @@ void EnvironmentEngine::load()
 
 
     m_backgroundImage.load(m_backgroundImageFilename);
+    if(m_backgroundImage.isNull())
+    {
+        qDebug(QString("The image at " + m_backgroundImageFilename + " has not been loaded").toStdString().c_str());
+        throw std::exception();
+    }
 
     if(m_backgroundImage.size() != wallMaskImage.size())
     {
         throw std::exception();
     }
-
 
     m_size = m_backgroundImage.size();
     p_tilesArray = new Tile*[m_backgroundImage.size().width()];
@@ -106,8 +110,10 @@ void EnvironmentEngine::loadConfiguration(const QString &configFilename)
 
     QFileInfo configDir(configFilename);
     qDebug(configDir.absoluteDir().path().toStdString().c_str());
+
     QString backgroundFilename = configDir.path() + "/" + document.elementsByTagName("background").at(0).toElement().attribute("file").toLatin1();
     QString maskFilename = configDir.path() + "/" + document.elementsByTagName("mask").at(0).toElement().attribute("file").toLatin1();
+    qDebug(QString("file path = " + backgroundFilename).toStdString().c_str());
     m_backgroundImageFilename = backgroundFilename;
     m_maskImageFilename = maskFilename;
 

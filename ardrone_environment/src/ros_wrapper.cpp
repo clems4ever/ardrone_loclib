@@ -38,13 +38,14 @@ void ros_wrapper::run()
     ros::Subscriber KalmanPos_sub = n.subscribe("kalman_position", 1000, ros_wrapper::locateDroneFromKalman);
     ros::Subscriber qrcode_transform_sub = n.subscribe("qrcode", 1000, ros_wrapper::transformQRCode);
     m_qrcode_position_pub = n.advertise<geometry_msgs::Point>("tag_position", 100);
-    IplImage *img;
+    QImage img;
 
     while(ros::ok()){
         if(p_environment != 0 && p_environment->ready())
         {
             p_environment->computeImage();
-            img = p_environment->getCvImage();
+            img = QImage(p_environment->getImage());
+            //qDebug(QString("%1,%2").arg(img.size().width()).arg(img.size().height()).toStdString().c_str());
             // Don't publish the message in ROS when the 2 lines are commented
             //msg = sensor_msgs::CvBridge::cvToImgMsg(img, "rgba8");
             //environmentPublisher.publish(msg);

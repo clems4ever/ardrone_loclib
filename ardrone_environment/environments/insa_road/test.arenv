@@ -1,5 +1,5 @@
 <Configuration>
- <background file="background"/>
+ <background file="background.bmp"/>
  <mask file="wallmask.bmp"/>
  <offset x="0" y="0"/>
  <scale x="0.4" y="0.4"/>

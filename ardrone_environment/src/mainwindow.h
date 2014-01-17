@@ -43,7 +43,7 @@ signals:
     void tagChanged(int pos, QString code, QString value, double x, double y);
 
 public slots:
-    void refreshEnvironmentImage(IplImage *);
+    void refreshEnvironmentImage(QImage);
     void validateItemChange(QTableWidgetItem* item);
 
     void removeTag();

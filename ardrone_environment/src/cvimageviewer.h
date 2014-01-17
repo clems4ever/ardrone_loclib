@@ -23,6 +23,13 @@ public:
 
 public slots:
 
+    void showImage(const QImage& image)
+    {
+        _qimage = image;
+        this->setFixedSize(image.width(), image.height());
+        repaint();
+    }
+
     void showImage(const cv::Mat& image) {
         // Convert the image to the RGB888 format
         switch (image.type()) {
@@ -51,13 +58,6 @@ public slots:
     }
 
 protected:
-    void paintEvent(QPaintEvent* /*event*/) {
-        // Display the image
-        QPainter painter(this);
-        painter.drawImage(QPoint(0,0), _qimage);
-        painter.end();
-    }
-
     QImage _qimage;
     cv::Mat _tmp;
     int m_mousex, m_mousey;

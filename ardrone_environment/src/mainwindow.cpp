@@ -165,10 +165,11 @@ void MainWindow::refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList)
 
 /** @brief Refreshes the environment image in the GUI
   */
-void MainWindow::refreshEnvironmentImage(IplImage *img)
+void MainWindow::refreshEnvironmentImage(QImage img)
 {
-    cv::Mat m(img);
-    p_imageViewer->showImage(m);
+    //cv::Mat m(img);
+    //qDebug(QString("Refresh %1, %2").arg(img.size().width()).arg(img.size().height()).toStdString().c_str());
+    p_imageViewer->showImage(img);
 }
 
 /** @brief Slot that validates the datas that have been modified and emits tagChanged signal
