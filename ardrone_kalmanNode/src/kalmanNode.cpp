@@ -45,33 +45,32 @@
 // Variables d'acquisition
 double x_tum =0.0;
 double y_tum =0.0;
-double x_gps=0.0;
-double y_gps=0.0;
-double x_tag=0.0;
-double y_tag=0.0;
-double x_odom=0.0;
-double y_odom=0.0;
+double x_gps=60000.0;
+double y_gps=60000.0;
+double x_tag=40000.0;
+double y_tag=40000.0;
+double x_odom=20000.0;
+double y_odom=20000.0;
 
 // Variables de KALMAN
 // Déclaration des variables du filtre.  
 // Covariance R  
 // Incertitudes = Variance = EcartType²
-    int ErreurGPS = 20; 
-    int ErreurTAG = 0.01;
-    int ErreurODOM = 5;
-    int ErreurA = 2;
-    int ErreurV = ErreurA*ErreurA;
+    double ErreurGPS = 20; 
+    double ErreurTAG = 0.01;
+    double ErreurODOM = 5;
+    double ErreurTUM = 1;
     double Rgps = ErreurGPS*ErreurGPS;
     double Rodom = ErreurODOM*ErreurODOM;
     double Rtag = ErreurTAG*ErreurTAG;
-    double Rtum = ErreurV*ErreurV;
+    double Rtum = ErreurTUM*ErreurTUM;
     double R[64]={     Rgps,     0,       0,       0,       0,       0,       0,       0, 
                        0,        Rgps,    0,       0,       0,       0,       0,       0,
                        0,        0,       Rodom,   0,       0,       0,       0,       0,
                        0,        0,       0,       Rodom,   0,       0,       0,       0,
                        0,        0,       0,       0,       Rtag,    0,       0,       0,
                        0,        0,       0,       0,       0,       Rtag,    0,       0,
-                       0,        0,       0,       0,       0,       0,       Rtum,   0,
+                       0,        0,       0,       0,       0,       0,       Rtum,    0,
                        0,        0,       0,       0,       0,       0,       0,       Rtum};
 
 
@@ -120,12 +119,24 @@ bool stateOffset=false;
 // Procédures qui s'executent à la réception d'un message subscribe
 void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
 {
-    // récupération data + Changement de référentiel
-    x_tum=msg->x-prevXtum+x_tag;
-    y_tum=msg->y-prevYtum+y_tag;
+    // cas du reset
+    if ( (msg->x > -0.001) && (msg->x < 0.001) || (msg->y > -0.001) && (msg->y < 0.001) )
+    {
+        x_tum = msg->x + x_tag;
+        y_tum = msg->y + y_tag;
+        
+        prevXtum=0;
+        prevYtum=0; 
+    }
+    else
+    {    
+        // récupération data + Changement de référentiel     
+        x_tum = msg->x - prevXtum + x_tag;
+        y_tum = msg->y - prevYtum + y_tag;
 
-    prevXtum=x_tum;
-    prevYtum=y_tum;
+        prevXtum=x_tum - x_tag;
+        prevYtum=y_tum - y_tag;    
+    }
 
     // Variable prête
     Ftum=true;        
@@ -190,7 +201,7 @@ double checkData(bool t, double v, int matrix_zone, int type)
     // Si variable non fraiche
     if(t==false)
     {
-      R_point[matrix_zone]=4000;
+      R_point[matrix_zone]=999999;
       val=v;
     }
     // Sinon ...
@@ -249,6 +260,10 @@ int main(int argc, char **argv)
         Z[7]=checkData(Ftum,y_tum, 63,4);
 
         //Fonction Kalman Boucle 
+        ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
+        ROS_INFO("ZPREC -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
+        ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
+        
         Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
 
         //Variables non fraiches
@@ -256,7 +271,7 @@ int main(int argc, char **argv)
         Fodom=false;
         Ftum=false;
         Fgps=false;        
-        ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
+        
 
         //Mise a jour des variables
         Zprec_point=Z;  
