@@ -64,12 +64,16 @@ void EnvironmentEngine::load()
 
 
     m_backgroundImage.load(m_backgroundImageFilename);
+    if(m_backgroundImage.isNull())
+    {
+        qDebug(QString("The image at " + m_backgroundImageFilename + " has not been loaded").toStdString().c_str());
+        throw std::exception();
+    }
 
     if(m_backgroundImage.size() != wallMaskImage.size())
     {
         throw std::exception();
     }
-
 
     m_size = m_backgroundImage.size();
     p_tilesArray = new Tile*[m_backgroundImage.size().width()];

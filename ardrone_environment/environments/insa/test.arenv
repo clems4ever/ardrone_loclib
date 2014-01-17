@@ -1,5 +1,5 @@
 <Configuration>
- <background file="insa_background.bmp"/>
+ <background file="insa_background.jpg"/>
  <mask file="insa_wallmask.bmp"/>
  <offset x="-200" y="-200"/>
  <scale x="0.78" y="0.78"/>
