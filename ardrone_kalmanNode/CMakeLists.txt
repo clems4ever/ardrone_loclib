@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 include_directories("Kalman_matlab/codegen/lib/Kalman_boucle")
-include_directories("../ardrone_autonomy")
-include_directories("../tum_ardrone")
+
+execute_process(COMMAND rospack find ardrone_autonomy OUTPUT_VARIABLE ARDRONE_AUTONOMY_PATH)
+string(REPLACE "\n" "" ARDRONE_AUTONOMY_PATH ${ARDRONE_AUTONOMY_PATH})
+
+execute_process(COMMAND rospack find tum_ardrone OUTPUT_VARIABLE TUM_ARDRONE_PATH)
+string(REPLACE "\n" "" TUM_ARDRONE_PATH ${TUM_ARDRONE_PATH})
+
+#include_directories(${ARDRONE_AUTONOMY_PATH})
+#include_directories("../tum_ardrone")
+
+#include_directories("../ardrone_autonomy")
+#include_directories("../tum_ardrone")
 
 # Set the build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage

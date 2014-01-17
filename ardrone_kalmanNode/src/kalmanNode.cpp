@@ -219,7 +219,7 @@ int main(int argc, char **argv)
   timeStamp=ros::Time::now().toSec();
 
   //Publisher
-  ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("Ardrone_KalmanPos", 10);
+  ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("kalman_position", 10);
   
   // Déclaration du message qui servira à publier la position estimée du kalman
   geometry_msgs::Point positionMsg;
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
   ros::Subscriber TUM_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackTUM);
   ros::Subscriber ODOM_sub = n.subscribe("/odom", 1000,messageCallbackODOM );
   ros::Subscriber GPS_sub = n.subscribe("/gps", 1000,messageCallbackGPS);
-  ros::Subscriber TAG_sub = n.subscribe("/qrcode", 1000, messageCallbackTAG);
+  ros::Subscriber TAG_sub = n.subscribe("/tag_position", 1000, messageCallbackTAG);
 
   //loop rate
   ros::Rate loop_rate(1);
