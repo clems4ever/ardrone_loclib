@@ -20,7 +20,7 @@ class TagDetector:
 	self.pub = rospy.Publisher('/qrcode', String)
 
 	# Subscribers
-        rospy.Subscriber("/usb_cam/image_raw", Image, self.image_received_callback)
+        rospy.Subscriber("/ardrone/image_rect", Image, self.image_received_callback)
         rospy.Subscriber("/ar_pose_marker", ARMarker, self.marker_detected_callback)
 
     # main loop

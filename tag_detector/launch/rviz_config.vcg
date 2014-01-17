@@ -1,0 +1,68 @@
+Background\ ColorB=0
+Background\ ColorG=0
+Background\ ColorR=0
+Camera\ Config=0.214796 2.20725 5.73563 0.796642 -1.15483 0.402843
+Camera\ Type=rviz::OrbitViewController
+Camera.Enabled=1
+Camera.Image\ Rendering=background & overlay
+Camera.Image\ Topic=/ardrone/image_rect_color
+Camera.Overlay\ Alpha=0.5
+Camera.Queue\ Size=2
+Camera.Transport\ Hint=raw
+Camera.Zoom\ Factor=1
+Fixed\ Frame=/ardrone_base_link
+Grid.Alpha=0.5
+Grid.Cell\ Size=1
+Grid.ColorB=0.5
+Grid.ColorG=0.5
+Grid.ColorR=0.5
+Grid.Enabled=1
+Grid.Line\ Style=0
+Grid.Line\ Width=0.03
+Grid.Normal\ Cell\ Count=0
+Grid.OffsetX=0
+Grid.OffsetY=0
+Grid.OffsetZ=0
+Grid.Plane=0
+Grid.Plane\ Cell\ Count=10
+Grid.Reference\ Frame=<Fixed Frame>
+Marker.Enabled=1
+Marker.Marker\ Topic=/visualization_marker
+Marker.Queue\ Size=100
+Marker.basic_shapes=1
+Property\ Grid\ Splitter=345,0
+Property\ Grid\ State=expanded=.Global Options,Marker.Enabled;splitterratio=0.407813
+QMainWindow=000000ff00000000fd00000003000000000000011d00000287fc0200000003fb000000100044006900730070006c006100790073010000001d000001ab000000ee00fffffffb0000000a0049006d0061006700650000000215000000bf0000000000000000fb0000000c00430061006d00650072006101000001ce000000d60000001900ffffff000000010000013100000287fc0200000003fb0000001e0054006f006f006c002000500072006f0070006500720074006900650073010000001d000000c80000006700fffffffb0000000a0056006900650077007301000000eb000000eb000000bb00fffffffb0000001200530065006c0065006300740069006f006e01000001dc000000c80000006700ffffff00000003000003bf0000003efc0100000001fb0000000800540069006d00650100000000000003bf000002bf00ffffff000001650000028700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+TF.All\ Enabled=0
+TF.Enabled=1
+TF.Frame\ Timeout=15
+TF.Marker\ Scale=1
+TF.Show\ Arrows=1
+TF.Show\ Axes=1
+TF.Show\ Names=1
+TF.Update\ Interval=0
+Target\ Frame=<Fixed Frame>
+Tool\ 2D\ Nav\ GoalTopic=/goal
+Tool\ 2D\ Pose\ EstimateTopic=initialpose
+[Display0]
+ClassName=rviz::GridDisplay
+Name=Grid
+[Display1]
+ClassName=rviz::TFDisplay
+Name=TF
+[Display2]
+ClassName=rviz::CameraDisplay
+Name=Camera
+[Display3]
+ClassName=rviz::MarkerDisplay
+Name=Marker
+[TF.Frames.]
+ar_marker.Enabled=1
+ardrone_base_bottomcam.Enabled=0
+ardrone_base_frontcam.Enabled=0
+ardrone_base_link.Enabled=1
+[Window]
+Height=744
+Width=959
+X=56
+Y=477
