@@ -9,6 +9,7 @@
 #include "cv_bridge/CvBridge.h"
 
 EnvironmentEngine* ros_wrapper::p_environment = 0;
+ros::Publisher ros_wrapper::m_qrcode_position_pub;
 
 ros_wrapper::ros_wrapper(QObject *parent) :
     QThread(parent)
@@ -31,7 +32,12 @@ void ros_wrapper::run()
     sensor_msgs::ImagePtr msg;
 
     ros::Subscriber su1 = n.subscribe("ardrone_loclib_mission", 1000, ros_wrapper::storeMission);
-    ros::Subscriber su2 = n.subscribe("ardrone_loclib_position2d", 1000, ros_wrapper::locateDrone);
+
+    // Deprecated version of locate drone (used by ardrone_simulator)
+    //ros::Subscriber su2 = n.subscribe("ardrone_loclib_position2d", 1000, ros_wrapper::locateDrone);
+    ros::Subscriber KalmanPos_sub = n.subscribe("kalman_position", 1000, ros_wrapper::locateDroneFromKalman);
+    ros::Subscriber qrcode_transform_sub = n.subscribe("qrcode", 1000, ros_wrapper::transformQRCode);
+    m_qrcode_position_pub = n.advertise<geometry_msgs::Point>("tag_position", 100);
     IplImage *img;
 
     while(ros::ok()){
@@ -39,6 +45,7 @@ void ros_wrapper::run()
         {
             p_environment->computeImage();
             img = p_environment->getCvImage();
+            // Don't publish the message in ROS when the 2 lines are commented
             //msg = sensor_msgs::CvBridge::cvToImgMsg(img, "rgba8");
             //environmentPublisher.publish(msg);
             emit environmentImagePublished(img);
@@ -127,5 +134,31 @@ void ros_wrapper::storeMission(const ardrone_environment::ARDroneMission::ConstP
 void ros_wrapper::locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr &msg)
 {
     p_environment->updateDronePosition(msg->x, msg->y);
+}
+
+
+/** @brief Gets the drone position from the topic Ardrone_KalmanPos and refresh its position in the engine.
+  */
+void ros_wrapper::locateDroneFromKalman(const geometry_msgs::Point &msg)
+{
+    p_environment->updateDronePosition(msg.x, msg.y);
+}
+
+void ros_wrapper::transformQRCode(const std_msgs::String &msg)
+{
+    QList<EnvironmentEngine::Tag> l = p_environment->getTagsList();
+    EnvironmentEngine::DoublePoint offset;
+    for(int i=0; i<l.size(); i++)
+    {
+        EnvironmentEngine::Tag t = l.at(i);
+        if(t.code == QString(msg.data.c_str()))
+        {
+            geometry_msgs::Point p;
+            p.x = t.x + offset.x();
+            p.y = t.y + offset.y();
+            p.z = 0.0;
+            m_qrcode_position_pub.publish(p);
+        }
+    }
 }
 
