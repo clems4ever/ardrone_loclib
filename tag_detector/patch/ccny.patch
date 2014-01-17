@@ -1,4 +1,11 @@
-79c79
-<         CFLAG="-fPIC -O -I/usr/X11R6/include"
----
->         CFLAG="-fPIC -O -I/usr/X11R6/include -I/usr/src/linux-headers-"$(uname -r)"/include"
+--- Configure.orig2	2014-01-17 17:04:24.727065000 +0100
++++ Configure	2014-01-17 17:06:40.939065000 +0100
+@@ -76,7 +76,7 @@
+ 			exit 0
+ 		fi	
+         VIDEO_DRIVER="VideoLinuxV4L"
+-        CFLAG="-fPIC -O -I/usr/X11R6/include -I/usr/src/linux-headers-"$(uname -r)"/include"
++        CFLAG="-fPIC -O -I/usr/X11R6/include"
+         LDFLAG="-L/usr/X11R6/lib"
+         ARFLAG="rs"
+         RANLIB=""
