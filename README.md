@@ -3,7 +3,7 @@ ardrone_loclib
 
 Parrot AR.Drone localization and movement ROS library. This is **not** a ROS package itself. It is a repository with ROS packages inside.
 
-## Setup
+### Setup
 
 This will reference all packages in the directory ardrone_loclib. Doing the following, you do **not** have to `git clone`.
 ```
