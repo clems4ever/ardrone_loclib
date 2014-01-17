@@ -20,7 +20,7 @@ EnvironmentEngine::EnvironmentEngine(QObject *parent) :
 
     m_rosWrapper.storeEnvironmentEngine(this);
 
-    connect(&m_rosWrapper, SIGNAL(environmentImagePublished(IplImage*)), this, SIGNAL(environmentImagePublished(IplImage*)));
+    connect(&m_rosWrapper, SIGNAL(environmentImagePublished(QImage)), this, SIGNAL(environmentImagePublished(QImage)));
 }
 
 /** @brief Destroys the pointer representing the map

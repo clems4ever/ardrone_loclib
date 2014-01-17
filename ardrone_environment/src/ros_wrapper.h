@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QImage>
 
 #include "opencv/cv.h"
 
@@ -39,7 +40,7 @@ public:
     static void transformQRCode(const std_msgs::String& msg);
 
 signals:
-    void environmentImagePublished(IplImage *);
+    void environmentImagePublished(QImage);
 
 public slots:
 

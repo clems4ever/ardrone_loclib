@@ -38,7 +38,7 @@ ARDroneEnvironment::ARDroneEnvironment(QObject *parent) :
     connect(p_mainWindow, SIGNAL(scaleXChanged(double)), p_environmentEngine, SLOT(setScaleX(double)));
     connect(p_mainWindow, SIGNAL(scaleYChanged(double)), p_environmentEngine, SLOT(setScaleY(double)));
 
-    connect(p_environmentEngine, SIGNAL(environmentImagePublished(IplImage*)), p_mainWindow, SLOT(refreshEnvironmentImage(IplImage*)) );
+    connect(p_environmentEngine, SIGNAL(environmentImagePublished(QImage)), p_mainWindow, SLOT(refreshEnvironmentImage(QImage)) );
     connect(p_environmentEngine, SIGNAL(dronePositionUpdated()), this, SLOT(refreshDronePosition()));
 
     // A tag has changed in the table
