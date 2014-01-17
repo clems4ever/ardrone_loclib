@@ -95,7 +95,6 @@ public:
     static IplImage* qImage2IplImage(const QImage& qImage);
     IplImage *getCvImage();
 
-    const EnvironmentEngine::DoublePoint getAbsolutePoint(const EnvironmentEngine::DoublePoint& p);
     const EnvironmentEngine::DoublePoint getImagePoint(const EnvironmentEngine::DoublePoint& p);
 
 signals:
@@ -105,6 +104,8 @@ signals:
 
 public slots:
     void addTag();
+    void removeTag(int pos);
+
     void setOffset(double x, double y);
     void setOffsetX(double x);
     void setOffsetY(double y);

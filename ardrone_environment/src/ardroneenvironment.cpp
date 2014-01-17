@@ -29,8 +29,10 @@ ARDroneEnvironment::ARDroneEnvironment(QObject *parent) :
 
     // Refreshes tag table
     connect(p_mainWindow, SIGNAL(addTagAsked()), p_environmentEngine, SLOT(addTag()));
+    connect(p_mainWindow, SIGNAL(removeTagAsked(int)), p_environmentEngine, SLOT(removeTag(int)));
     connect(p_environmentEngine, SIGNAL(tagListUpdated()), this, SLOT(refreshTagsTable()));
 
+    // Refreshes the offset and scale when modified in the GUI
     connect(p_mainWindow, SIGNAL(offsetXChanged(double)), p_environmentEngine, SLOT(setOffsetX(double)));
     connect(p_mainWindow, SIGNAL(offsetYChanged(double)), p_environmentEngine, SLOT(setOffsetY(double)));
     connect(p_mainWindow, SIGNAL(scaleXChanged(double)), p_environmentEngine, SLOT(setScaleX(double)));
@@ -39,10 +41,11 @@ ARDroneEnvironment::ARDroneEnvironment(QObject *parent) :
     connect(p_environmentEngine, SIGNAL(environmentImagePublished(IplImage*)), p_mainWindow, SLOT(refreshEnvironmentImage(IplImage*)) );
     connect(p_environmentEngine, SIGNAL(dronePositionUpdated()), this, SLOT(refreshDronePosition()));
 
+    // A tag has changed in the table
     connect(p_mainWindow, SIGNAL(tagChanged(int,QString,QString,double,double)), p_environmentEngine, SLOT(updateTag(int,QString,QString,double,double)));
 }
 
-/**
+/** @brief starts the software engine and GUI
  *
  */
 void ARDroneEnvironment::start()
@@ -62,12 +65,15 @@ void ARDroneEnvironment::cleanQuit()
     qApp->quit();
 }
 
-
+/** @brief Refreshes the drone position into the mainwindow lineedit
+  */
 void ARDroneEnvironment::refreshDronePosition()
 {
     p_mainWindow->refreshDronePosition(p_environmentEngine->getDronePosition());
 }
 
+/** @brief slot that refreshes the tag table list
+  */
 void ARDroneEnvironment::refreshTagsTable()
 {
     p_mainWindow->refreshTagsTable(p_environmentEngine->getTagsList());

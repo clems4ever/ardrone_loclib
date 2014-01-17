@@ -8,6 +8,9 @@
 #include <QDomDocument>
 #include <QPen>
 #include <QPainter>
+#include <QUrl>
+#include <QDir>
+#include <QFileInfo>
 
 EnvironmentEngine::EnvironmentEngine(QObject *parent) :
     QObject(parent), m_ready(false), m_rosWrapper(this), m_offset(0.0, 0.0), m_scale(1.0, 1.0)
@@ -45,6 +48,8 @@ bool EnvironmentEngine::ready() const
     return m_ready;
 }
 
+/** Loads the environment with all the parameters already set such as backgroundImageFilename
+  */
 void EnvironmentEngine::load()
 {
     freeMemory();
@@ -99,8 +104,10 @@ void EnvironmentEngine::loadConfiguration(const QString &configFilename)
 
     m_lastTagId = 0;
 
-    QString backgroundFilename = document.elementsByTagName("background").at(0).toElement().attribute("file").toLatin1();
-    QString maskFilename = document.elementsByTagName("mask").at(0).toElement().attribute("file").toLatin1();
+    QFileInfo configDir(configFilename);
+    qDebug(configDir.absoluteDir().path().toStdString().c_str());
+    QString backgroundFilename = configDir.path() + "/" + document.elementsByTagName("background").at(0).toElement().attribute("file").toLatin1();
+    QString maskFilename = configDir.path() + "/" + document.elementsByTagName("mask").at(0).toElement().attribute("file").toLatin1();
     m_backgroundImageFilename = backgroundFilename;
     m_maskImageFilename = maskFilename;
 
@@ -135,11 +142,11 @@ void EnvironmentEngine::saveConfiguration(const QString &configFilename)
     doc.appendChild(config);
 
     QDomElement background = doc.createElement("background");
-    background.setAttribute("file", m_backgroundImageFilename);
+    background.setAttribute("file", QFileInfo(m_backgroundImageFilename).fileName());
     config.appendChild(background);
 
     QDomElement mask = doc.createElement("mask");
-    mask.setAttribute("file", m_maskImageFilename);
+    mask.setAttribute("file", QFileInfo(m_maskImageFilename).fileName());
     config.appendChild(mask);
 
     QDomElement offset = doc.createElement("offset");
@@ -172,6 +179,8 @@ void EnvironmentEngine::saveConfiguration(const QString &configFilename)
 }
 
 
+/** @brief Adds a tag into the list of the engine and ask for refreshing the table by emitting a signal
+  */
 void EnvironmentEngine::addTag()
 {
     EnvironmentEngine::Tag t;
@@ -179,6 +188,14 @@ void EnvironmentEngine::addTag()
     t.x = -1;
     t.y = -1;
     appendTag(t);
+    emit tagListUpdated();
+}
+
+/** @brief Removes the tag at the given position and ask for refreshing the table by emitting a signal
+  */
+void EnvironmentEngine::removeTag(int pos)
+{
+    m_tagList.removeAt(pos);
     emit tagListUpdated();
 }
 
@@ -191,6 +208,8 @@ EnvironmentEngine::Tile EnvironmentEngine::getTile(int x, int y) const
     return p_tilesArray[x][y];
 }
 
+/** @brief Appends the tag to the list in the engine
+  */
 void EnvironmentEngine::appendTag(const Tag &t)
 {
     m_tagList.append(t);
@@ -211,11 +230,15 @@ const EnvironmentEngine::DoublePoint &EnvironmentEngine::getDronePosition() cons
     return m_droneImagePosition;
 }
 
+/** @brief Gets the drone position on the image after transform
+  */
 const EnvironmentEngine::DoublePoint &EnvironmentEngine::getDroneImagePosition() const
 {
     return m_dronePosition;
 }
 
+/** @brief Gets the offset of the environment
+  */
 const EnvironmentEngine::DoublePoint &EnvironmentEngine::getOffset() const
 {
     return m_offset;
@@ -257,11 +280,8 @@ IplImage* EnvironmentEngine::getCvImage()
     return EnvironmentEngine::qImage2IplImage(m_currentEnvironmentImage);
 }
 
-const EnvironmentEngine::DoublePoint EnvironmentEngine::getAbsolutePoint(const EnvironmentEngine::DoublePoint &pt)
-{
-    DoublePoint p((pt.x() + m_offset.x()) / m_scale.x(), (pt.y() + m_offset.y()) / m_scale.y());
-    return p;
-}
+/** @brief Transform a point from real world into a point of the image.
+  */
 
 const EnvironmentEngine::DoublePoint EnvironmentEngine::getImagePoint(const EnvironmentEngine::DoublePoint &pt)
 {
@@ -271,6 +291,8 @@ const EnvironmentEngine::DoublePoint EnvironmentEngine::getImagePoint(const Envi
 
 
 /** @brief Computes the image representing the environment
+  * Draws a background image, a wall mask, the tags represented by circles, the drone by 3 concentric circles
+  * and the mission when necessary
   */
 void EnvironmentEngine::computeImage()
 {
@@ -319,7 +341,7 @@ void EnvironmentEngine::computeImage()
     m_painter.setPen(pen);
     for(int i=0; i<m_missionPath.size(); i++)
     {
-        DoublePoint p = getAbsolutePoint(m_missionPath.at(i));
+        DoublePoint p = getImagePoint(m_missionPath.at(i));
         m_painter.drawPoint(QPoint(p.x(), p.y()));
     }
 
@@ -345,33 +367,45 @@ void EnvironmentEngine::updateDronePosition(int x, int y)
     emit dronePositionUpdated();
 }
 
+/** @brief Sets the 2 coordinates of offset
+  */
 void EnvironmentEngine::setOffset(double x, double y)
 {
     m_offset.setX(x);
     m_offset.setY(y);
 }
 
+/** @brief sets the first coordinate of offset
+  */
 void EnvironmentEngine::setOffsetX(double x)
 {
     m_offset.setX(x);
 }
 
+/** @brief sets the second coordinate of offset
+  */
 void EnvironmentEngine::setOffsetY(double y)
 {
     m_offset.setY(y);
 }
 
+/** @brief Sets the 2 coordinates of scale
+  */
 void EnvironmentEngine::setScale(double x, double y)
 {
     m_scale.setX(x);
     m_scale.setY(y);
 }
 
+/** @brief sets the first coordinate of scale
+  */
 void EnvironmentEngine::setScaleX(double x)
 {
     m_scale.setX(x);
 }
 
+/** @brief sets the second coordinate of scale
+  */
 void EnvironmentEngine::setScaleY(double y)
 {
     m_scale.setY(y);
@@ -387,6 +421,8 @@ void EnvironmentEngine::updateTag(int pos, QString code, QString value, double x
     m_tagList.replace(pos, t);
 }
 
+/** @brief private method that frees the allocated memory
+  */
 void EnvironmentEngine::freeMemory()
 {
     // Free memory

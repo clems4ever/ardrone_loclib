@@ -26,44 +26,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QAction *closeAction = new QAction("Quit", fileMenu);
 
+    QAction *settingsAction = new QAction("Settings", menuBar);
+
     fileMenu->addAction(openConfigurationAction);
     fileMenu->addAction(saveConfigurationAction);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAction);
     menuBar->addMenu(fileMenu);
+    menuBar->addAction(settingsAction);
     this->setMenuBar(menuBar);
 
     p_imageViewer = new MapViewer();
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy.setHorizontalStretch(0);
+    sizePolicy.setVerticalStretch(0);
+    p_imageViewer->setSizePolicy(sizePolicy);
 
-
-    //************************ Drone info **************************
-
-    QFormLayout *droneInfo = new QFormLayout();
-    p_dronePositionLineEdit = new QLineEdit();
-    p_dronePositionLineEdit->setEnabled(false);
-
-    p_droneScaleXLineEdit = new QDoubleSpinBox();
-    p_droneScaleYLineEdit = new QDoubleSpinBox();
-    p_droneScaleXLineEdit->setRange(0.00001, 1000000.0);
-    p_droneScaleYLineEdit->setRange(0.00001, 1000000.0);
-    p_droneScaleXLineEdit->setValue(1.0);
-    p_droneScaleYLineEdit->setValue(1.0);
-
-    p_droneOffsetXLineEdit = new QDoubleSpinBox();
-    p_droneOffsetYLineEdit = new QDoubleSpinBox();
-    p_droneOffsetXLineEdit->setRange(-DBL_MAX, DBL_MAX);
-    p_droneOffsetYLineEdit->setRange(-DBL_MAX, DBL_MAX);
-
-    droneInfo->addRow(new QLabel("Drone position"), p_dronePositionLineEdit);
-    droneInfo->addRow(new QLabel("Scale X"), p_droneScaleXLineEdit);
-    droneInfo->addRow(new QLabel("Scale Y"), p_droneScaleYLineEdit);
-
-    droneInfo->addRow(new QLabel("Offset X"), p_droneOffsetXLineEdit);
-    droneInfo->addRow(new QLabel("Offset Y"), p_droneOffsetYLineEdit);
-
-
-
-    //**************************************************************
 
     //************************ Tag list ****************************
 
@@ -87,13 +65,45 @@ MainWindow::MainWindow(QWidget *parent) :
     //**************************************************************
 
 
+    //************************ Drone info **************************
+
+    QVBoxLayout *infoVLay = new QVBoxLayout();
+    QFormLayout *droneInfo = new QFormLayout();
+    p_dronePositionLineEdit = new QLineEdit();
+    p_dronePositionLineEdit->setEnabled(false);
+
+    p_droneScaleXLineEdit = new QDoubleSpinBox();
+    p_droneScaleYLineEdit = new QDoubleSpinBox();
+    p_droneScaleXLineEdit->setRange(0.00001, 1000000.0);
+    p_droneScaleYLineEdit->setRange(0.00001, 1000000.0);
+    p_droneScaleXLineEdit->setValue(1.0);
+    p_droneScaleYLineEdit->setValue(1.0);
+
+    p_droneOffsetXLineEdit = new QDoubleSpinBox();
+    p_droneOffsetYLineEdit = new QDoubleSpinBox();
+    p_droneOffsetXLineEdit->setRange(-DBL_MAX, DBL_MAX);
+    p_droneOffsetYLineEdit->setRange(-DBL_MAX, DBL_MAX);
+
+    droneInfo->addRow(new QLabel("Drone position"), p_dronePositionLineEdit);
+    droneInfo->addRow(new QLabel("Scale X"), p_droneScaleXLineEdit);
+    droneInfo->addRow(new QLabel("Scale Y"), p_droneScaleYLineEdit);
+
+    droneInfo->addRow(new QLabel("Offset X"), p_droneOffsetXLineEdit);
+    droneInfo->addRow(new QLabel("Offset Y"), p_droneOffsetYLineEdit);
+    infoVLay->addLayout(droneInfo);
+    infoVLay->addLayout(tagvlay);
+    infoVLay->setMargin(10);
+
+    //**************************************************************
+
     //********************** CentralWidget **************************
 
     QHBoxLayout *hbox = new QHBoxLayout();
 
-    hbox->addLayout(tagvlay,3);
-    hbox->addWidget(p_imageViewer,7);
-    hbox->addLayout(droneInfo,3);
+    hbox->addLayout(infoVLay,2);
+    hbox->addWidget(p_imageViewer,7, Qt::AlignCenter);
+
+    hbox->setMargin(0);
     centralWidget->setLayout(hbox);
 
 
@@ -117,7 +127,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(p_droneScaleYLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScaleY(double)));
 
     connect(p_addButton, SIGNAL(clicked()), this, SIGNAL(addTagAsked()));
-
+    connect(p_removeButton, SIGNAL(clicked()), this, SLOT(removeTag()));
 
 }
 
@@ -130,7 +140,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList)
 {
-    disconnect(p_tagsTableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(validItemChange(QTableWidgetItem*)));
+    disconnect(p_tagsTableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(validateItemChange(QTableWidgetItem*)));
     p_tagsTableWidget->clear();
     p_tagsTableWidget->setRowCount(tagsList.size());
     QStringList headersList;
@@ -149,7 +159,7 @@ void MainWindow::refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList)
         item = new QTableWidgetItem(QString("%1").arg((double)tagsList.at(i).y));
         p_tagsTableWidget->setItem(i, 3, item);
     }
-    connect(p_tagsTableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(validItemChange(QTableWidgetItem*)));
+    connect(p_tagsTableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(validateItemChange(QTableWidgetItem*)));
 }
 
 
@@ -161,23 +171,41 @@ void MainWindow::refreshEnvironmentImage(IplImage *img)
     p_imageViewer->showImage(m);
 }
 
-void MainWindow::validItemChange(QTableWidgetItem *item)
+/** @brief Slot that validates the datas that have been modified and emits tagChanged signal
+  */
+void MainWindow::validateItemChange(QTableWidgetItem *item)
 {
     int pos = item->row();
     QString code = p_tagsTableWidget->item(pos, 0)->text();
     QString value = p_tagsTableWidget->item(pos, 1)->text();
     double x = p_tagsTableWidget->item(pos, 2)->text().toDouble();
     double y = p_tagsTableWidget->item(pos, 3)->text().toDouble();
-    qDebug(QString("row %1 has changed, code %2").arg(pos).arg(code).toStdString().c_str());
+    //qDebug(QString("row %1 has changed, code %2").arg(pos).arg(code).toStdString().c_str());
 
     emit tagChanged(pos, code, value, x, y);
 }
 
+/** @brief Slot that gets the position of the selected line in the table and ask for removing the tag by emitting a signal
+  */
+void MainWindow::removeTag()
+{
+    QTableWidgetItem *item = p_tagsTableWidget->currentItem();
+    if(item == NULL) return;
+    int pos = item->row();
+    emit removeTagAsked(pos);
+}
+
+
+/** @brief Refreshes the drone position in the line edit
+  */
 void MainWindow::refreshDronePosition(const EnvironmentEngine::DoublePoint &p)
 {
     p_dronePositionLineEdit->setText(QString("(%1,%2)").arg(p.x()).arg(p.y()));
 }
 
+
+/** @brief Refreshed the offset and scale of the map in the corresponding line edit.
+  */
 void MainWindow::refreshOffsetAndScale(const EnvironmentEngine::DoublePoint &offset, const EnvironmentEngine::DoublePoint &scale)
 {
     p_droneOffsetXLineEdit->setValue(offset.x());

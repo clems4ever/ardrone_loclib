@@ -6,10 +6,15 @@
 
 #include "opencv/cv.h"
 
+#include "ros/ros.h"
+
 #include "ardrone_environment/ARDroneMapSrv.h"
 #include "ardrone_environment/ARDroneTagListSrv.h"
 #include "ardrone_environment/ARDronePosition2D.h"
 #include "ardrone_environment/ARDroneMission.h"
+
+#include "geometry_msgs/Point.h"
+#include "std_msgs/String.h"
 
 class EnvironmentEngine;
 
@@ -29,6 +34,9 @@ public:
 
     static void storeMission(const ardrone_environment::ARDroneMission::ConstPtr& mission);
     static void locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr& msg);
+    static void locateDroneFromKalman(const geometry_msgs::Point& msg);
+
+    static void transformQRCode(const std_msgs::String& msg);
 
 signals:
     void environmentImagePublished(IplImage *);
@@ -38,6 +46,8 @@ public slots:
 private:
     static EnvironmentEngine *p_environment;
     bool m_isRunning;
+
+    static ros::Publisher m_qrcode_position_pub;
 
 };
 

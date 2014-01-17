@@ -1,0 +1,10 @@
+<Configuration>
+ <background file="background"/>
+ <mask file="wallmask.bmp"/>
+ <offset x="0" y="0"/>
+ <scale x="0.4" y="0.4"/>
+ <tags>
+  <tag x="168" y="224" value="TEST" code="1"/>
+  <tag x="160" y="148" value="" code="2"/>
+ </tags>
+</Configuration>
