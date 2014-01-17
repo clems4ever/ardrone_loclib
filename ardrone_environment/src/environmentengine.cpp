@@ -106,8 +106,10 @@ void EnvironmentEngine::loadConfiguration(const QString &configFilename)
 
     QFileInfo configDir(configFilename);
     qDebug(configDir.absoluteDir().path().toStdString().c_str());
+
     QString backgroundFilename = configDir.path() + "/" + document.elementsByTagName("background").at(0).toElement().attribute("file").toLatin1();
     QString maskFilename = configDir.path() + "/" + document.elementsByTagName("mask").at(0).toElement().attribute("file").toLatin1();
+    qDebug(QString("file path = " + backgroundFilename).toStdString().c_str());
     m_backgroundImageFilename = backgroundFilename;
     m_maskImageFilename = maskFilename;
 
