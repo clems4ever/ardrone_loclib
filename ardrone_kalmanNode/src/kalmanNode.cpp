@@ -27,45 +27,34 @@
 // %Tag(FULLTEXT)%
 // %Tag(ROS_HEADER)%
 #include "ros/ros.h"
+#include "std_msgs/String.h"
+#include "rt_nonfinite.h"
+#include "inv.h" 
+#include "Kalman_boucle.h"
+#include <sstream>
 // %EndTag(ROS_HEADER)%
 // %Tag(MSG_HEADER)%
-#include "std_msgs/String.h"
 #include "geometry_msgs/Point.h"
 #include "sensor_msgs/Imu.h"
 #include "geometry_msgs/Vector3.h"
 #include "nav_msgs/Odometry.h"
-
-#include "rt_nonfinite.h"
-#include "inv.h" 
-#include "Kalman_boucle.h"
-
-#include <sstream>
 #include <ardrone_autonomy/Navdata.h>
- #include "tum_ardrone/filter_state.h"
-
-/**
- * This tutorial demonstrates simple sending of messages over the ROS system.
- */
+#include "tum_ardrone/filter_state.h"
+// %EndTag(MSG_HEADER)%
 
 // Variables d'acquisition
-double x_imu =0.0;
-double y_imu =0.0;
-
+double x_tum =0.0;
+double y_tum =0.0;
 double x_gps=0.0;
 double y_gps=0.0;
-
-
 double x_tag=0.0;
 double y_tag=0.0;
-
 double x_odom=0.0;
 double y_odom=0.0;
 
 // Variables de KALMAN
-
 // Déclaration des variables du filtre.  
 // Covariance R  
-// Dans un 1er temps on fixe les valeurs de la matrice des covariances
 // Incertitudes = Variance = EcartType²
     int ErreurGPS = 20; 
     int ErreurTAG = 0.01;
@@ -75,15 +64,15 @@ double y_odom=0.0;
     double Rgps = ErreurGPS*ErreurGPS;
     double Rodom = ErreurODOM*ErreurODOM;
     double Rtag = ErreurTAG*ErreurTAG;
-    double RVimu = ErreurV*ErreurV;
+    double Rtum = ErreurV*ErreurV;
     double R[64]={     Rgps,     0,       0,       0,       0,       0,       0,       0, 
                        0,        Rgps,    0,       0,       0,       0,       0,       0,
                        0,        0,       Rodom,   0,       0,       0,       0,       0,
                        0,        0,       0,       Rodom,   0,       0,       0,       0,
                        0,        0,       0,       0,       Rtag,    0,       0,       0,
                        0,        0,       0,       0,       0,       Rtag,    0,       0,
-                       0,        0,       0,       0,       0,       0,       RVimu,   0,
-                       0,        0,       0,       0,       0,       0,       0,       RVimu};
+                       0,        0,       0,       0,       0,       0,       Rtum,   0,
+                       0,        0,       0,       0,       0,       0,       0,       Rtum};
 
 
 
@@ -110,23 +99,14 @@ double *Xk_point=Xk;
 double *Pk_point=Pk;
 double *Prediction_point=Prediction;
 
-//Variables vitesse IMU
-double prevXimu = 0;
-double prevYimu = 0;
+//Variables position TUM
+double prevXtum = 0;
+double prevYtum = 0;
 double timeStamp = 0;
-
-
-//Correction du drift
-int state=0;
-int cpt=0;
-double tabX[500]={};
-double tabY[500]={};
-double driftX=0;
-double driftY=0;
 
 //Fraicheur des données
 bool Ftag=false;
-bool Fimu = false;
+bool Ftum = false;
 bool Fodom = false;
 bool Fgps = false;
 
@@ -137,34 +117,27 @@ double timeTAG=0;
 bool stateOffset=false;
 
 
-
-//void messageCallbackIMU(const sensor_msgs::Imu::ConstPtr &msg)
-void messageCallbackIMU(const tum_ardrone::filter_state::ConstPtr &msg)
+// Procédures qui s'executent à la réception d'un message subscribe
+void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
 {
+    // récupération data + Changement de référentiel
+    x_tum=msg->x-prevXtum+x_tag;
+    y_tum=msg->y-prevYtum+y_tag;
 
-    x_imu=msg->x-prevXimu+x_tag;
-    y_imu=msg->y-prevYimu+y_tag;
+    prevXtum=x_tum;
+    prevYtum=y_tum;
 
-    //Changement de référenciel
-    /*x_imu=msg->x+x_tag;
-      y_imu=msg->y+y_tag;
-    */
-
-
-    prevXimu=x_imu;
-    prevYimu=y_imu;
-
-    Fimu=true;
-
-        
+    // Variable prête
+    Ftum=true;        
 }
 
 void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
 {
-
+    // Récupération data
     x_gps=msg->pose.pose.position.x;
     y_gps=msg->pose.pose.position.y;
 
+    // Correction du drift du GPS à partir des TAGS
     if(stateOffset){
       if((ros::Time::now().toSec()-timeTAG)<5){
             offsetX=x_tag-x_gps;
@@ -178,52 +151,51 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
     x_gps+=offsetX;
     y_gps+=offsetY;
 
-
-
-    //Variable fraiche
+    // Variable prête
     Fgps=true;
-   
 }
 
 
  void messageCallbackODOM(const nav_msgs::Odometry::ConstPtr &msg)
 {
+    // Récupération data
     x_odom=msg->pose.pose.position.x;
     y_odom=msg->pose.pose.position.y;
 
-    //Variable fraiche
+    // Variable prête
     Fodom=true;
     //ROS_INFO("ODOM -> x_odom: %f, y_odom: %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
 }
 
  void messageCallbackTAG(const geometry_msgs::Point::ConstPtr &msg)
 {
-
+    // Récupération data
     x_tag=msg->x;
     y_tag=msg->y;
 
-    //Variable fraiche
+    // Variable prête
     Ftag=true;
 
     //Acquisition du temps pour le calcul de l'offset du GPS
     timeTAG=ros::Time::now().toSec();
     stateOffset=true;
-
 }
 
-//Verifie la fraicheur de la données
-//Si fraiche, renvoie la valeurd
-//Si non, renvoie 2000000
-double checkData(bool t, double v, int matrix_zone, int type){
-    
+// Verifie la fraicheur de la données
+// Si fraiche, renvoie la de la covariance
+// Si non, renvoie une covariance élevée pour ne pas prendre la mesure en compte dans le Kalman
+double checkData(bool t, double v, int matrix_zone, int type)
+{    
     double val=0;
-
-    if(t==false){
+    // Si variable non fraiche
+    if(t==false)
+    {
       R_point[matrix_zone]=4000;
       val=v;
     }
-
-    else {
+    // Sinon ...
+    else 
+    {
       val=v;
       if(type==1)
         R_point[matrix_zone]=Rgps;
@@ -232,17 +204,14 @@ double checkData(bool t, double v, int matrix_zone, int type){
       if(type==3)
         R_point[matrix_zone]=Rtag;
       if(type==4)
-        R_point[matrix_zone]=RVimu;
+        R_point[matrix_zone]=Rtum;
     }
 
-    return val;
-  
+    return val;  
 }
 
 int main(int argc, char **argv)
 {
-
-  ROS_INFO("salu");
 
   ros::init(argc, argv, "kalmanNode");
 
@@ -256,10 +225,10 @@ int main(int argc, char **argv)
   geometry_msgs::Point positionMsg;
 
   //Subscriber
-  ros::Subscriber IMU_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackIMU);
-  ros::Subscriber ODOM_pub = n.subscribe("/odom", 1000,messageCallbackODOM );
-  ros::Subscriber GPS_pub = n.subscribe("/gps", 1000,messageCallbackGPS);
-  ros::Subscriber TAG_pub = n.subscribe("/qrcode", 1000, messageCallbackTAG);
+  ros::Subscriber TUM_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackTUM);
+  ros::Subscriber ODOM_sub = n.subscribe("/odom", 1000,messageCallbackODOM );
+  ros::Subscriber GPS_sub = n.subscribe("/gps", 1000,messageCallbackGPS);
+  ros::Subscriber TAG_sub = n.subscribe("/qrcode", 1000, messageCallbackTAG);
 
   //loop rate
   ros::Rate loop_rate(1);
@@ -269,42 +238,42 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
 
-    //Affectation vecteur de mesure
-    Z[0]=checkData(Fgps,x_gps,0,1);
-    Z[1]=checkData(Fgps,y_gps,9,1);
-    Z[2]=checkData(Fodom,x_odom, 18,2);
-    Z[3]=checkData(Fodom,x_odom, 27,2);
-    Z[4]=checkData(Ftag,x_tag, 36,3);
-    Z[5]=checkData(Ftag,y_tag, 45,3);
-    Z[6]=checkData(Fimu,x_imu, 54,4);
-    Z[7]=checkData(Fimu,y_imu, 63,4);
+        //Affectation vecteur de mesure
+        Z[0]=checkData(Fgps,x_gps,0,1);
+        Z[1]=checkData(Fgps,y_gps,9,1);
+        Z[2]=checkData(Fodom,x_odom, 18,2);
+        Z[3]=checkData(Fodom,x_odom, 27,2);
+        Z[4]=checkData(Ftag,x_tag, 36,3);
+        Z[5]=checkData(Ftag,y_tag, 45,3);
+        Z[6]=checkData(Ftum,x_tum, 54,4);
+        Z[7]=checkData(Ftum,y_tum, 63,4);
 
-    //Fonction Kalman Boucle 
-    Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
+        //Fonction Kalman Boucle 
+        Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
 
-    //Variables non fraiches
-    Ftag=false;
-    Fodom=false;
-    Fimu=false;
-    Fgps=false;        
-    ROS_INFO("IMU -> x_imu: %f, y_imu: %f",x_imu, y_imu);
+        //Variables non fraiches
+        Ftag=false;
+        Fodom=false;
+        Ftum=false;
+        Fgps=false;        
+        ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
 
-     //Mise a jour des variables
-     Zprec_point=Z;  
-     R_point_precedent=R_point;
-     Xprec_point=Xk_point;
-     Pprec_point=Pk_point;
-    
-    //Publication de la position issue du Kalman
-    positionMsg.x = Prediction_point[0];
-    positionMsg.y = Prediction_point[1];
+        //Mise a jour des variables
+        Zprec_point=Z;  
+        R_point_precedent=R_point;
+        Xprec_point=Xk_point;
+        Pprec_point=Pk_point;
+        
+        //Publication de la position issue du Kalman
+        positionMsg.x = Prediction_point[0];
+        positionMsg.y = Prediction_point[1];
 
-    KalmanPos_pub.publish(positionMsg);
+        KalmanPos_pub.publish(positionMsg);
 
-    ros::spinOnce();
+        ros::spinOnce();
 
-    loop_rate.sleep();
-    ++count;
+        loop_rate.sleep();
+        ++count;
 
    };
 
