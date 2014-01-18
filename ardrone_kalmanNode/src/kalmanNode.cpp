@@ -27,16 +27,16 @@
 // %Tag(FULLTEXT)%
 // %Tag(ROS_HEADER)%
 #include "ros/ros.h"
-#include "std_msgs/String.h"
 #include "rt_nonfinite.h"
 #include "inv.h" 
 #include "Kalman_boucle.h"
 #include <sstream>
 // %EndTag(ROS_HEADER)%
 // %Tag(MSG_HEADER)%
+#include "std_msgs/String.h"
 #include "geometry_msgs/Point.h"
-#include "sensor_msgs/Imu.h"
 #include "geometry_msgs/Vector3.h"
+#include "sensor_msgs/Imu.h"
 #include "nav_msgs/Odometry.h"
 #include <ardrone_autonomy/Navdata.h>
 #include "tum_ardrone/filter_state.h"
@@ -45,12 +45,12 @@
 // Variables d'acquisition
 double x_tum =0.0;
 double y_tum =0.0;
-double x_gps=60000.0;
-double y_gps=60000.0;
-double x_tag=40000.0;
-double y_tag=40000.0;
-double x_odom=20000.0;
-double y_odom=20000.0;
+double x_gps=400.0;
+double y_gps=400.0;
+double x_tag=400.0;
+double y_tag=400.0;
+double x_odom=400.0;
+double y_odom=400.0;
 
 // Variables de KALMAN
 // Déclaration des variables du filtre.  
@@ -59,7 +59,7 @@ double y_odom=20000.0;
     double ErreurGPS = 20; 
     double ErreurTAG = 0.01;
     double ErreurODOM = 5;
-    double ErreurTUM = 1;
+    double ErreurTUM = 2;
     double Rgps = ErreurGPS*ErreurGPS;
     double Rodom = ErreurODOM*ErreurODOM;
     double Rtag = ErreurTAG*ErreurTAG;
@@ -119,8 +119,11 @@ bool stateOffset=false;
 // Procédures qui s'executent à la réception d'un message subscribe
 void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
 {
+    //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",msg->x, msg->y);
+    
+    /*
     // cas du reset
-    if ( (msg->x > -0.001) && (msg->x < 0.001) || (msg->y > -0.001) && (msg->y < 0.001) )
+    if ( (msg->x > -0.001) && (msg->x < 0.001) && (msg->y > -0.001) && (msg->y < 0.001) )
     {
         x_tum = msg->x + x_tag;
         y_tum = msg->y + y_tag;
@@ -137,6 +140,9 @@ void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
         prevXtum=x_tum - x_tag;
         prevYtum=y_tum - y_tag;    
     }
+    */
+    x_tum = msg->x + x_tag;
+    y_tum = msg->y + y_tag;
 
     // Variable prête
     Ftum=true;        
@@ -193,8 +199,14 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
 }
 
 // Verifie la fraicheur de la données
-// Si fraiche, renvoie la de la covariance
+// Si nouvelle data, renvoie la de la covariance
 // Si non, renvoie une covariance élevée pour ne pas prendre la mesure en compte dans le Kalman
+// t = true -> nouvelle data 
+//   = false -> pas de nouvelle data
+// v = valeur de la covariance si nouvelle data
+// matrix_zone = position de la covariance dans la matrice R
+// type = gps || odom || tag || tum
+// \return la valeur de la covariance correcte en fonction de l'arriver des data et met à jour la covariance associée 
 double checkData(bool t, double v, int matrix_zone, int type)
 {    
     double val=0;
@@ -221,6 +233,10 @@ double checkData(bool t, double v, int matrix_zone, int type)
     return val;  
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////// MAIN ////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
 
@@ -231,6 +247,14 @@ int main(int argc, char **argv)
 
   //Publisher
   ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("kalman_position", 10);
+  //command_channel = nh_.resolveName("tum_ardrone/com");
+  ros::Publisher reset_tum_pub = n.advertise<std_msgs::String>("tum_ardrone/com",50);
+    
+  // message de reset de TUM
+  std_msgs::String rst;
+  std::stringstream ss;
+  ss << "f reset" ;
+  rst.data = ss.str();
   
   // Déclaration du message qui servira à publier la position estimée du kalman
   geometry_msgs::Point positionMsg;
@@ -242,7 +266,7 @@ int main(int argc, char **argv)
   ros::Subscriber TAG_sub = n.subscribe("/tag_position", 1000, messageCallbackTAG);
 
   //loop rate
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(10);
 
 
   int count = 0;
@@ -256,11 +280,18 @@ int main(int argc, char **argv)
         Z[3]=checkData(Fodom,x_odom, 27,2);
         Z[4]=checkData(Ftag,x_tag, 36,3);
         Z[5]=checkData(Ftag,y_tag, 45,3);
+        
+        //  /!\ A tester /!\ Afin de reinitialiser la position donnée par TUM
+        if (Ftag==true)
+        {
+            reset_tum_pub.publish(rst);
+        }
+        
         Z[6]=checkData(Ftum,x_tum, 54,4);
         Z[7]=checkData(Ftum,y_tum, 63,4);
 
         //Fonction Kalman Boucle 
-        ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
+        //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
         ROS_INFO("ZPREC -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
         ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
         
@@ -284,6 +315,8 @@ int main(int argc, char **argv)
         positionMsg.y = Prediction_point[1];
 
         KalmanPos_pub.publish(positionMsg);
+        
+        
 
         ros::spinOnce();
 
