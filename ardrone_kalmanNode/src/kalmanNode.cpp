@@ -45,12 +45,12 @@
 // Variables d'acquisition
 double x_tum =0.0;
 double y_tum =0.0;
-double x_gps=400.0;
-double y_gps=400.0;
+double x_gps=200.0;
+double y_gps=200.0;
 double x_tag=400.0;
 double y_tag=400.0;
-double x_odom=400.0;
-double y_odom=400.0;
+double x_odom=100.0;
+double y_odom=100.0;
 
 // Variables de KALMAN
 // Déclaration des variables du filtre.  
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
   ros::Subscriber TAG_sub = n.subscribe("/tag_position", 1000, messageCallbackTAG);
 
   //loop rate
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(1);
 
 
   int count = 0;
@@ -293,7 +293,7 @@ int main(int argc, char **argv)
         //Fonction Kalman Boucle 
         //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
         ROS_INFO("ZPREC -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
-        ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
+        //ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
         
         Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
 

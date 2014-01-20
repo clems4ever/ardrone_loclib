@@ -36,10 +36,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment
+CMAKE_SOURCE_DIR = /home/user/Roxannews/ardrone_loclib/ardrone_environment
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment
+CMAKE_BINARY_DIR = /home/user/Roxannews/ardrone_loclib/ardrone_environment
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -66,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment/CMakeFiles /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/Roxannews/ardrone_loclib/ardrone_environment/CMakeFiles /home/user/Roxannews/ardrone_loclib/ardrone_environment/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/Roxannews/ardrone_loclib/ardrone_environment/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

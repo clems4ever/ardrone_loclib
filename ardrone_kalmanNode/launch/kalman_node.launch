@@ -1,0 +1,7 @@
+<!-- This is a sample lanuch file, please change it based on your needs -->
+<launch>
+	<node name="kalmanNode" pkg="ardrone_kalmanNode" type="kalmanNode" output="screen">
+  	</node>
+  	
+  	
+</launch>
