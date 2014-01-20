@@ -1,0 +1,7 @@
+
+---
+bool target_reached
+geometry_msgs/Pose epsilon
+bool active
+bool relative_yaw
+geometry_msgs/Pose current_target
