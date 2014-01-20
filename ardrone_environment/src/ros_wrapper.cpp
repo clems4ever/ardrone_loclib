@@ -85,7 +85,6 @@ bool ros_wrapper::sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req
     int width = p_environment->getSize().width();
     int height = p_environment->getSize().height();
     res.map.tiles.resize(width);
-    res.map.name = "INSA map";
 
     for(int x=0; x < width; x++)
     {
@@ -96,7 +95,9 @@ bool ros_wrapper::sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req
             res.map.tiles.at(x).x.at(y) = p_environment->getTile(x, y);
         }
     }
-
+    res.map.scale = p_environment->getScale();
+    res.map.offsetx = p_environment->getOffset().x();
+    res.map.offsety = p_environment->getOffset().y();
     return true;
 }
 

@@ -6,22 +6,22 @@
 
 #include <queue>
 
-SimulatorEngine::SimulatorEngine(QObject *parent) :
+ARDroneTrajectory::ARDroneTrajectory(QObject *parent) :
     QObject(parent), m_rosWrapper(this, this)
 {
 }
 
-SimulatorEngine::~SimulatorEngine()
+ARDroneTrajectory::~ARDroneTrajectory()
 {
     m_rosWrapper.exit();
 }
 
-void SimulatorEngine::start()
+void ARDroneTrajectory::start()
 {
     m_rosWrapper.start();
 }
 
-SimulatorEngine::Tile **SimulatorEngine::createMap(int width, int height)
+ARDroneTrajectory::Tile **ARDroneTrajectory::createMap(int width, int height)
 {
     p_map = new Tile*[width];
     for(int x=0; x<width; x++)
@@ -34,7 +34,7 @@ SimulatorEngine::Tile **SimulatorEngine::createMap(int width, int height)
     return p_map;
 }
 
-QList<QPoint> SimulatorEngine::getPath(const QPoint &source, const QPoint &destination)
+QList<QPoint> ARDroneTrajectory::getPath(const QPoint &source, const QPoint &destination)
 {
     qDebug("Path computation");
     QList<QPoint> path;

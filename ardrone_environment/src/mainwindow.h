@@ -42,6 +42,8 @@ signals:
 
     void tagChanged(int pos, QString code, QString value, double x, double y);
 
+    void missionAsked(QPoint p1, QPoint p2);
+
 public slots:
     void refreshEnvironmentImage(QImage);
     void validateItemChange(QTableWidgetItem* item);
@@ -51,6 +53,10 @@ public slots:
     void autoscale();
     void endAutoscale(QPoint p1, QPoint p2);
     void abortAutoscale();
+
+    void mission();
+    void endMission(QPoint p1);
+    void abortMission();
 
 private:
     EnvironmentEngine *p_environmentEngine;
@@ -66,8 +72,10 @@ private:
     QDoubleSpinBox *p_droneOffsetXLineEdit, *p_droneOffsetYLineEdit;
 
     QPushButton *p_autoScaleButton, *p_stopScaleButton;
+    QPushButton *p_defineMissionButton, *p_abortMissionButton;
 
     bool m_autoscaleEnabled;
+    QList<QPoint> m_missionPoints;
 
 };
 

@@ -13,8 +13,10 @@
 #include <QFileInfo>
 
 EnvironmentEngine::EnvironmentEngine(QObject *parent) :
-    QObject(parent), m_ready(false), m_rosWrapper(this), m_offset(0.0, 0.0), m_scale(1.0)
+    QObject(parent), m_rosWrapper(this), m_offset(0.0, 0.0)
 {
+    m_scale = 1.0;
+    m_ready = false;
     p_tilesArray = 0;
     m_dronePosition = DoublePoint(0,0);
 
@@ -59,14 +61,10 @@ void EnvironmentEngine::load()
     m_dronePosition = DoublePoint(0.0,0.0);
     m_lastTagId = 0;
 
-    Tag tag;
-    int currentTag = 0;
-
-
     m_backgroundImage.load(m_backgroundImageFilename);
     if(m_backgroundImage.isNull())
     {
-        qDebug(QString("The image at " + m_backgroundImageFilename + " has not been loaded").toStdString().c_str());
+        qDebug(QString("The image at %1 has not been loaded").arg(m_backgroundImageFilename).toStdString().c_str());
         throw std::exception();
     }
 
@@ -408,6 +406,11 @@ void EnvironmentEngine::updateTag(int pos, QString code, QString value, double x
     t.x = x;
     t.y = y;
     m_tagList.replace(pos, t);
+}
+
+void EnvironmentEngine::computeTrajectory()
+{
+    ros_wrapper->computeTrajectory();
 }
 
 /** @brief private method that frees the allocated memory

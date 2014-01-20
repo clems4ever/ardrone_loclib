@@ -23,6 +23,7 @@ void MapViewer::mousePressEvent(QMouseEvent *ev)
 {
     m_holdPressed = true;
     pt1 = ev->pos();
+    emit clickedPoint(pt1);
     repaint();
 }
 

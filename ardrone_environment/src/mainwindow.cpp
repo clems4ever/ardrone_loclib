@@ -77,10 +77,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QHBoxLayout *hscale = new QHBoxLayout();
     p_autoScaleButton = new QPushButton("Auto scale");
-    p_stopScaleButton = new QPushButton("Stop");
+    p_stopScaleButton = new QPushButton("Abort");
     hscale->addWidget(p_autoScaleButton);
     hscale->addWidget(p_stopScaleButton);
     p_stopScaleButton->setEnabled(false);
+
+    p_defineMissionButton = new QPushButton("Define mission");
+    p_abortMissionButton = new QPushButton("Abort");
+    QHBoxLayout *hmission = new QHBoxLayout();
+    hmission->addWidget(p_defineMissionButton);
+    hmission->addWidget(p_abortMissionButton);
+    p_abortMissionButton->setEnabled(false);
 
     p_scaleXLineEdit = new QDoubleSpinBox();
     p_scaleYLineEdit = new QDoubleSpinBox();
@@ -104,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent) :
     droneInfo->addRow(new QLabel("Offset Y"), p_droneOffsetYLineEdit);
     infoVLay->addLayout(droneInfo);
     infoVLay->addLayout(hscale);
+    infoVLay->addLayout(hmission);
     infoVLay->addLayout(tagvlay);
     infoVLay->setMargin(10);
 
@@ -142,8 +150,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(p_scaleXLineEdit, SIGNAL(valueChanged(double)), p_scaleYLineEdit, SLOT(setValue(double)));
     connect(p_scaleYLineEdit, SIGNAL(valueChanged(double)), p_scaleXLineEdit, SLOT(setValue(double)));
 
+    // Autoscale buttons
     connect(p_autoScaleButton, SIGNAL(clicked()), this, SLOT(autoscale()));
     connect(p_stopScaleButton, SIGNAL(clicked()), this, SLOT(abortAutoscale()));
+
+    // Mission buttons
+    connect(p_defineMissionButton, SIGNAL(clicked()), this, SLOT(mission()));
+    connect(p_abortMissionButton, SIGNAL(clicked()), this, SLOT(abortMission()));
 
     connect(p_addButton, SIGNAL(clicked()), this, SIGNAL(addTagAsked()));
     connect(p_removeButton, SIGNAL(clicked()), this, SLOT(removeTag()));
@@ -186,8 +199,6 @@ void MainWindow::refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList)
   */
 void MainWindow::refreshEnvironmentImage(QImage img)
 {
-    //cv::Mat m(img);
-    //qDebug(QString("Refresh %1, %2").arg(img.size().width()).arg(img.size().height()).toStdString().c_str());
     p_imageViewer->showImage(img);
 }
 
@@ -229,7 +240,7 @@ void MainWindow::endAutoscale(QPoint p1, QPoint p2)
     double rx = p1.x() - p2.x();
     double ry = p1.y() - p2.y();
     bool ok;
-    double d_user = QInputDialog::getDouble(this, "Auto scale", "Give the distance of the measure",0.0, 0.0, 2147483647, 3, &ok);
+    double d_user = QInputDialog::getDouble(this, "Auto scale", "Give the distance of the measure in meters",0.0, 0.0, 2147483647, 3, &ok);
 
     if(ok)
     {
@@ -247,6 +258,42 @@ void MainWindow::abortAutoscale()
     disconnect(p_imageViewer, SIGNAL(measurePoints(QPoint,QPoint)), this, SLOT(endAutoscale(QPoint,QPoint)));
     p_stopScaleButton->setEnabled(false);
     p_autoScaleButton->setEnabled(true);
+}
+
+/** @brief The user can define a mission
+  */
+void MainWindow::mission()
+{
+    m_autoscaleEnabled = true;
+    connect(p_imageViewer, SIGNAL(clickedPoint(QPoint)), this, SLOT(endMission(QPoint)));
+    p_abortMissionButton->setEnabled(true);
+    p_defineMissionButton->setEnabled(false);
+    m_missionPoints.clear();
+}
+
+/** @brief The user ends the definition of a mission
+  */
+void MainWindow::endMission(QPoint p1)
+{
+    m_missionPoints << p1;
+
+    if(m_missionPoints.size() == 2)
+    {
+        emit missionAsked(m_missionPoints.at(0), m_missionPoints.at(1));
+        qDebug("Mission defined");
+        disconnect(p_imageViewer, SIGNAL(clickedPoint(QPoint)), this, SLOT(endMission(QPoint)));
+        p_abortMissionButton->setEnabled(false);
+        p_defineMissionButton->setEnabled(true);
+    }
+}
+
+/** @brief The user aborts a mission definition
+  */
+void MainWindow::abortMission()
+{
+    disconnect(p_imageViewer, SIGNAL(clickedPoint(QPoint)), this, SLOT(endMission(QPoint)));
+    p_abortMissionButton->setEnabled(false);
+    p_defineMissionButton->setEnabled(true);
 }
 
 

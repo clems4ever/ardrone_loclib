@@ -9,7 +9,7 @@
 
 class Map2D;
 
-class SimulatorEngine : public QObject
+class ARDroneTrajectory : public QObject
 {
     Q_OBJECT
 public:
@@ -44,8 +44,8 @@ public:
         }
     };
 
-    SimulatorEngine(QObject *parent = 0);
-    virtual ~SimulatorEngine();
+    ARDroneTrajectory(QObject *parent = 0);
+    virtual ~ARDroneTrajectory();
 
     void start();
 

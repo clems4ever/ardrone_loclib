@@ -7,7 +7,7 @@
 #include "ardrone_environment/ARDroneMission.h"
 
 
-ros_wrapper::ros_wrapper(SimulatorEngine *simu, QObject *parent) :
+ros_wrapper::ros_wrapper(ARDroneTrajectory *simu, QObject *parent) :
     QThread(parent)
 {
     p_simulator = simu;
@@ -28,14 +28,14 @@ void ros_wrapper::run()
 
     int xmax = srv.response.map.tiles.size();
     int ymax = srv.response.map.tiles.at(0).x.size();
-    SimulatorEngine::Tile **map = p_simulator->createMap(srv.response.map.tiles.size(), srv.response.map.tiles.at(0).x.size());
+    ARDroneTrajectory::Tile **map = p_simulator->createMap(srv.response.map.tiles.size(), srv.response.map.tiles.at(0).x.size());
     qDebug(QString("Size = %1x%2").arg(srv.response.map.tiles.size()).arg(srv.response.map.tiles.at(0).x.size()).toStdString().c_str());
 
     for(unsigned int x=0; x<srv.response.map.tiles.size(); x++)
     {
         for(unsigned int y=0; y<srv.response.map.tiles.at(x).x.size(); y++)
         {
-            map[x][y].type = (SimulatorEngine::TileType)srv.response.map.tiles.at(x).x.at(y);
+            map[x][y].type = (ARDroneTrajectory::TileType)srv.response.map.tiles.at(x).x.at(y);
         }
     }
 
@@ -48,7 +48,7 @@ void ros_wrapper::run()
         {
             x1 = rand() % xmax;
             y1 = rand() % ymax;
-        }while(map[x1][y1].type != SimulatorEngine::EMPTY);
+        }while(map[x1][y1].type != ARDroneTrajectory::EMPTY);
 
         int x2 = rand() % xmax;
         int y2 = rand() % ymax;

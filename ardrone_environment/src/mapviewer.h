@@ -19,6 +19,7 @@ protected:
 
 signals:
     void measurePoints(QPoint p1, QPoint p2);
+    void clickedPoint(QPoint p);
 
 public slots:
     void refreshOffsetX(double);

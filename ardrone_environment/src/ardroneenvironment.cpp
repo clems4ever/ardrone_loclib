@@ -40,6 +40,8 @@ ARDroneEnvironment::ARDroneEnvironment(QObject *parent) :
     connect(p_environmentEngine, SIGNAL(environmentImagePublished(QImage)), p_mainWindow, SLOT(refreshEnvironmentImage(QImage)) );
     connect(p_environmentEngine, SIGNAL(dronePositionUpdated()), this, SLOT(refreshDronePosition()));
 
+    connect(p_mainWindow, SIGNAL(missionAsked(QPoint,QPoint)), p_environmentEngine, SLOT(computeTrajectory()));
+
     // A tag has changed in the table
     connect(p_mainWindow, SIGNAL(tagChanged(int,QString,QString,double,double)), p_environmentEngine, SLOT(updateTag(int,QString,QString,double,double)));
 }
