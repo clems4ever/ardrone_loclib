@@ -45,6 +45,7 @@
 // Variables d'acquisition
 double x_tum =0.0;
 double y_tum =0.0;
+double z_tum =0.0;
 double x_gps=200.0;
 double y_gps=200.0;
 double x_tag=400.0;
@@ -143,6 +144,7 @@ void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
     */
     x_tum = msg->x + x_tag;
     y_tum = msg->y + y_tag;
+    z_tum = msg->z;
 
     // Variable prête
     Ftum=true;        
@@ -154,7 +156,7 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
     x_gps=msg->pose.pose.position.x;
     y_gps=msg->pose.pose.position.y;
 
-    // Correction du drift du GPS à partir des TAGS
+    // /!\ A tester : Correction du drift du GPS à partir des TAGS
     if(stateOffset){
       if((ros::Time::now().toSec()-timeTAG)<5){
             offsetX=x_tag-x_gps;
@@ -262,11 +264,11 @@ int main(int argc, char **argv)
   //Subscriber
   ros::Subscriber TUM_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackTUM);
   ros::Subscriber ODOM_sub = n.subscribe("/odom", 1000,messageCallbackODOM );
-  ros::Subscriber GPS_sub = n.subscribe("/gps", 1000,messageCallbackGPS);
+  ros::Subscriber GPS_sub = n.subscribe("/gps_odom", 1000,messageCallbackGPS);
   ros::Subscriber TAG_sub = n.subscribe("/tag_position", 1000, messageCallbackTAG);
 
   //loop rate
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(10);
 
 
   int count = 0;
@@ -281,7 +283,7 @@ int main(int argc, char **argv)
         Z[4]=checkData(Ftag,x_tag, 36,3);
         Z[5]=checkData(Ftag,y_tag, 45,3);
         
-        //  /!\ A tester /!\ Afin de reinitialiser la position donnée par TUM
+        //  Afin de reinitialiser la position donnée par TUM
         if (Ftag==true)
         {
             reset_tum_pub.publish(rst);
@@ -313,6 +315,7 @@ int main(int argc, char **argv)
         //Publication de la position issue du Kalman
         positionMsg.x = Prediction_point[0];
         positionMsg.y = Prediction_point[1];
+        positionMsg.z = z_tum;
 
         KalmanPos_pub.publish(positionMsg);
         

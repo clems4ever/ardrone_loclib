@@ -40,7 +40,8 @@ rosbuild_gensrv()
 #TARGET_LINK_LIBRARIES(ardrone_environment ${QT_LIBRARIES})
 
 set(controller_dir ${PROJECT_SOURCE_DIR}/src/Pos_Controller)
-set(controller_sources ${controller_dir}/Pos_Controller.cpp ${controller_dir}/Pos_Controller_data.cpp ${controller_dir}/rtGetInf.cpp ${controller_dir}/rtGetNaN.cpp ${controller_dir}/rt_mod_snf.cpp ${controller_dir}/rt_mod.cpp ${controller_dir}/rt_nonfinite.cpp)
+#set(controller_sources ${controller_dir}/Pos_Controller.cpp ${controller_dir}/Pos_Controller_data.cpp ${controller_dir}/rtGetInf.cpp ${controller_dir}/rtGetNaN.cpp ${controller_dir}/rt_mod_snf.cpp ${controller_dir}/rt_mod.cpp ${controller_dir}/rt_nonfinite.cpp)
+set(controller_sources ${controller_dir}/Pos_Controller.cpp ${controller_dir}/Pos_Controller_data.cpp ${controller_dir}/rt_mod.cpp)
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)

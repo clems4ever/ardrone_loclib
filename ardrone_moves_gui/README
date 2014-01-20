@@ -1,0 +1,20 @@
+This tool is used to control the ardrone_moves node "position_control".
+It provides a GUI to set target, start/stop position control,
+but also provides tools for manual drone control
+These commands can have a displayed button and a keyboard shortcut
+(specified in ())
+takeoff (k)
+land (l)
+emergency stop (ESC)
+toggle cam (,) -> switch between front and bottom cameras
+
+fly command are optimized for azerty keyboard)
+forward (Z)
+back (S)
+left (Q)
+rigth (D)
+up (P)
+down (M)
+rotate left (A)
+rotate right (E)
+

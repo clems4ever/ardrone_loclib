@@ -15,13 +15,13 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class PositionCtrlGUI : public QMainWindow
 {
     Q_OBJECT
     
 public:
-    explicit MainWindow(ros::NodeHandle *nodehandle, QWidget *parent = 0);
-    ~MainWindow();
+    explicit PositionCtrlGUI(ros::NodeHandle *nodehandle, QWidget *parent = 0);
+    ~PositionCtrlGUI();
 
  protected:
     void emergency(void);
@@ -43,6 +43,9 @@ public:
 
     void do_imu_recalib(void);
     void do_flat_trim(void);
+
+    void do_toggle_cam(void);
+    void set_relative_yaw(bool yaw_is_relative);
 
     void drone_land(void);
     void drone_takeoff(void);
@@ -76,6 +79,10 @@ private slots:
 
     void on_imu_recalib_but_clicked();
 
+    void on_togglecam_but_clicked();
+
+    void on_relativeYawCheckBox_stateChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     ros::NodeHandle *nh;/** ros node handle of the application*/
@@ -89,6 +96,7 @@ private:
     geometry_msgs::Pose target;
     geometry_msgs::Twist command_vel;
 
+    bool yaw_is_relative;
 };
 
 #endif // MAINWINDOW_H

@@ -3,11 +3,11 @@
  *
  * Real-Time Workshop code generated for Simulink model Pos_Controller.
  *
- * Model version                        : 1.408
+ * Model version                        : 1.416
  * Real-Time Workshop file version      : 7.4  (R2009b)  29-Jun-2009
- * Real-Time Workshop file generated on : Thu Jan  2 12:38:17 2014
+ * Real-Time Workshop file generated on : Sat Jan 18 17:18:04 2014
  * TLC version                          : 7.4 (Jul 13 2009)
- * C/C++ source code generated on       : Thu Jan  2 12:38:18 2014
+ * C/C++ source code generated on       : Sat Jan 18 17:18:05 2014
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: Intel->x86/Pentium
