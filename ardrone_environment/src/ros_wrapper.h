@@ -9,10 +9,12 @@
 
 #include "ros/ros.h"
 
-#include "ardrone_environment/ARDroneMapSrv.h"
-#include "ardrone_environment/ARDroneTagListSrv.h"
-#include "ardrone_environment/ARDronePosition2D.h"
-#include "ardrone_environment/ARDroneMission.h"
+#include "ardrone_msgs/ARDroneMapSrv.h"
+#include "ardrone_msgs/ARDroneTagListSrv.h"
+#include "ardrone_msgs/ARDronePosition2D.h"
+#include "ardrone_msgs/ARDroneMission.h"
+
+#include "ardrone_msgs/ARDroneTrajectorySrv.h"
 
 #include "geometry_msgs/Point.h"
 #include "std_msgs/String.h"
@@ -30,14 +32,16 @@ public:
     void end();
 
     static void storeEnvironmentEngine(EnvironmentEngine *environment);
-    static bool sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req, ardrone_environment::ARDroneMapSrv::Response &res);
-    static bool sendTagList(ardrone_environment::ARDroneTagListSrv::Request &req, ardrone_environment::ARDroneTagListSrv::Response &res);
+    static bool sendStaticMap(ardrone_msgs::ARDroneMapSrv::Request &req, ardrone_msgs::ARDroneMapSrv::Response &res);
+    static bool sendTagList(ardrone_msgs::ARDroneTagListSrv::Request &req, ardrone_msgs::ARDroneTagListSrv::Response &res);
 
-    static void storeMission(const ardrone_environment::ARDroneMission::ConstPtr& mission);
-    static void locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr& msg);
+    static void storeMission(const ardrone_msgs::ARDroneMission::ConstPtr& mission);
+    static void locateDrone(const ardrone_msgs::ARDronePosition2D::ConstPtr& msg);
     static void locateDroneFromKalman(const geometry_msgs::Point& msg);
 
     static void transformQRCode(const std_msgs::String& msg);
+
+    void computeTrajectory();
 
 signals:
     void environmentImagePublished(QImage);
@@ -49,6 +53,7 @@ private:
     bool m_isRunning;
 
     static ros::Publisher m_qrcode_position_pub;
+    ros::ServiceClient m_missionServiceClient;
 
 };
 
