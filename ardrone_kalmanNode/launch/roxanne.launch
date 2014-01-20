@@ -1,0 +1,57 @@
+<launch>
+	<node name="ardrone_driver" pkg="ardrone_autonomy" type="ardrone_driver" output="screen" clear_params="true">
+	    <param name="outdoor" value="1" />
+	    <param name="max_bitrate" value="4000" />
+	    <param name="bitrate" value="4000" />
+	    <param name="navdata_demo" value="0" />
+	    <param name="flight_without_shell" value="0" />
+	    <param name="altitude_max" value="6000" />
+        <param name="altitude_min" value="50" />
+        <param name="euler_angle_max" value="0.21" />
+        <param name="control_vz_max" value="700" />
+	    <param name="control_yaw" value="1.75" />
+	    <param name="detect_type" value="10" />
+	    <param name="enemy_colors" value="3" />
+	    <param name="detections_select_h" value="32" />
+	    <param name="detections_select_v_hsync" value="128" />
+	    <param name="enemy_without_shell" value="0" />
+	    <param name="do_imu_caliberation" value="true" />
+	    <param name="tf_prefix" value="mydrone" />
+        <!-- Covariance Values (3x3 matrices reshaped to 1x9)-->
+        <rosparam param="cov/imu_la">[0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]</rosparam>
+        <rosparam param="cov/imu_av">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
+        <rosparam param="cov/imu_or">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 100000.0]</rosparam>
+	</node>
+
+
+		
+  	
+  	<node name="image_proc" pkg="image_proc" type="image_proc" ns="/ardrone"/>
+
+	<node name="ar_pose" pkg="ar_pose" type="ar_single" respawn="false">
+		<param name="marker_pattern" type="string" value="$(find ar_pose)/data/patt.hiro"/>
+		<param name="marker_width" type="double" value="80.0"/>
+		<param name="marker_center_x" type="double" value="0.0"/>
+		<param name="marker_center_y" type="double" value="0.0"/>
+		<param name="threshold" type="int" value="100"/>
+		<param name="use_history" type="bool" value="true"/>
+		<remap from="/usb_cam/image_raw" to="/ardrone/image_rect"/>
+		<remap from="/usb_cam/camera_info" to="/ardrone/camera_info"/>
+	</node>
+
+	<node name="tag_detector" pkg="tag_detector" type="detect.py"/>
+
+	<node name="ardrone_environment" pkg="ardrone_environment" type="ardrone_environment" output="screen"/>
+  	
+	<node name="drone_stateestimation" pkg="tum_ardrone" type="drone_stateestimation" output="screen">
+  	</node>
+
+  	<node name="kalmanNode" pkg="ardrone_kalmanNode" type="kalmanNode" output="screen">
+  	</node>
+  	
+  	
+	<node pkg="rosservice" type="rosservice" name="ardrone_imu_recalibration"
+		args="call /ardrone/imu_recalib" />
+
+
+</launch>
