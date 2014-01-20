@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QSpinBox>
+#include <QPushButton>
 
 #include "mapviewer.h"
 #include "environmentengine.h"
@@ -23,7 +24,7 @@ public:
     void refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList);
     void refreshDronePosition(const EnvironmentEngine::DoublePoint& position);
 
-    void refreshOffsetAndScale(const EnvironmentEngine::DoublePoint& offset, const EnvironmentEngine::DoublePoint& scale);
+    void refreshOffsetAndScale(const EnvironmentEngine::DoublePoint& offset, double scale);
 
 signals:
     void quitAsked();
@@ -37,8 +38,7 @@ signals:
     void offsetXChanged(double);
     void offsetYChanged(double);
 
-    void scaleXChanged(double);
-    void scaleYChanged(double);
+    void scaleChanged(double);
 
     void tagChanged(int pos, QString code, QString value, double x, double y);
 
@@ -47,6 +47,10 @@ public slots:
     void validateItemChange(QTableWidgetItem* item);
 
     void removeTag();
+
+    void autoscale();
+    void endAutoscale(QPoint p1, QPoint p2);
+    void abortAutoscale();
 
 private:
     EnvironmentEngine *p_environmentEngine;
@@ -58,8 +62,12 @@ private:
     QLineEdit *p_dronePositionLineEdit;
     QLineEdit *p_droneScaleLineEdit;
 
-    QDoubleSpinBox *p_droneScaleXLineEdit, *p_droneScaleYLineEdit;
+    QDoubleSpinBox *p_scaleXLineEdit, *p_scaleYLineEdit;
     QDoubleSpinBox *p_droneOffsetXLineEdit, *p_droneOffsetYLineEdit;
+
+    QPushButton *p_autoScaleButton, *p_stopScaleButton;
+
+    bool m_autoscaleEnabled;
 
 };
 

@@ -34,7 +34,7 @@ void ros_wrapper::run()
     ros::Subscriber su1 = n.subscribe("ardrone_loclib_mission", 1000, ros_wrapper::storeMission);
 
     // Deprecated version of locate drone (used by ardrone_simulator)
-    //ros::Subscriber su2 = n.subscribe("ardrone_loclib_position2d", 1000, ros_wrapper::locateDrone);
+    ros::Subscriber su2 = n.subscribe("ardrone_loclib_position2d", 1000, ros_wrapper::locateDrone);
     ros::Subscriber KalmanPos_sub = n.subscribe("kalman_position", 1000, ros_wrapper::locateDroneFromKalman);
     ros::Subscriber qrcode_transform_sub = n.subscribe("qrcode", 1000, ros_wrapper::transformQRCode);
     m_qrcode_position_pub = n.advertise<geometry_msgs::Point>("tag_position", 100);

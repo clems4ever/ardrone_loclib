@@ -13,7 +13,7 @@
 #include <QFileInfo>
 
 EnvironmentEngine::EnvironmentEngine(QObject *parent) :
-    QObject(parent), m_ready(false), m_rosWrapper(this), m_offset(0.0, 0.0), m_scale(1.0, 1.0)
+    QObject(parent), m_ready(false), m_rosWrapper(this), m_offset(0.0, 0.0), m_scale(1.0)
 {
     p_tilesArray = 0;
     m_dronePosition = DoublePoint(0,0);
@@ -121,9 +121,8 @@ void EnvironmentEngine::loadConfiguration(const QString &configFilename)
     double offsety = document.elementsByTagName("offset").at(0).toElement().attribute("y").toDouble();
     m_offset.set(offsetx, offsety);
 
-    double scalex = document.elementsByTagName("scale").at(0).toElement().attribute("x").toDouble();
-    double scaley = document.elementsByTagName("scale").at(0).toElement().attribute("y").toDouble();
-    m_scale.set(scalex, scaley);
+    double scale = document.elementsByTagName("scale").at(0).toElement().attribute("value").toDouble();
+    m_scale  = scale;
 
     QDomNodeList list = document.elementsByTagName("tag");
     m_tagList.clear();
@@ -161,8 +160,7 @@ void EnvironmentEngine::saveConfiguration(const QString &configFilename)
     config.appendChild(offset);
 
     QDomElement scale = doc.createElement("scale");
-    scale.setAttribute("x", m_scale.x());
-    scale.setAttribute("y", m_scale.y());
+    scale.setAttribute("value", m_scale);
     config.appendChild(scale);
 
     QDomElement tags = doc.createElement("tags");
@@ -252,7 +250,7 @@ const EnvironmentEngine::DoublePoint &EnvironmentEngine::getOffset() const
 
 /** @brief Gets the stored scale that get the image pixels positions
 */
-const EnvironmentEngine::DoublePoint &EnvironmentEngine::getScale() const
+double EnvironmentEngine::getScale() const
 {
     return m_scale;
 }
@@ -291,7 +289,7 @@ IplImage* EnvironmentEngine::getCvImage()
 
 const EnvironmentEngine::DoublePoint EnvironmentEngine::getImagePoint(const EnvironmentEngine::DoublePoint &pt)
 {
-    DoublePoint p((pt.x() + m_offset.x()) / m_scale.x(), (pt.y() + m_offset.y()) / m_scale.y());
+    DoublePoint p((pt.x() - m_offset.x()) / m_scale, ((-(pt.y() - m_offset.y()) / m_scale)) + m_currentEnvironmentImage.height());
     return p;
 }
 
@@ -369,7 +367,7 @@ void EnvironmentEngine::computeImage()
 void EnvironmentEngine::updateDronePosition(int x, int y)
 {
     m_dronePosition = DoublePoint(x, y);
-    m_droneImagePosition = DoublePoint((x + m_offset.x()) / m_scale.x(), (y + m_offset.y()) / m_scale.y());
+    m_droneImagePosition = getImagePoint(m_dronePosition);
     emit dronePositionUpdated();
 }
 
@@ -397,24 +395,9 @@ void EnvironmentEngine::setOffsetY(double y)
 
 /** @brief Sets the 2 coordinates of scale
   */
-void EnvironmentEngine::setScale(double x, double y)
+void EnvironmentEngine::setScale(double s)
 {
-    m_scale.setX(x);
-    m_scale.setY(y);
-}
-
-/** @brief sets the first coordinate of scale
-  */
-void EnvironmentEngine::setScaleX(double x)
-{
-    m_scale.setX(x);
-}
-
-/** @brief sets the second coordinate of scale
-  */
-void EnvironmentEngine::setScaleY(double y)
-{
-    m_scale.setY(y);
+    m_scale = s;
 }
 
 void EnvironmentEngine::updateTag(int pos, QString code, QString value, double x, double y)

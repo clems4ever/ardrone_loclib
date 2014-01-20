@@ -6,8 +6,7 @@ MapViewer::MapViewer(QWidget *parent) : CvImageViewer(parent)
 {
     m_offsetx = 0;
     m_offsety = 0;
-    m_scalex = 1.0;
-    m_scaley = 1.0;
+    m_scale = 1.0;
     m_holdPressed = false;
     setCursor(Qt::BlankCursor);
 }
@@ -30,6 +29,11 @@ void MapViewer::mousePressEvent(QMouseEvent *ev)
 void MapViewer::mouseReleaseEvent(QMouseEvent *ev)
 {
     m_holdPressed = false;
+    double rx = (pt1.x() - pt2.x());
+    double ry = (pt1.y() - pt2.y());
+    double dist = sqrt((rx * rx) + (ry * ry));
+    if(pt1 != pt2)
+        emit measurePoints(pt1, pt2);
     repaint();
 }
 
@@ -42,13 +46,13 @@ void MapViewer::paintEvent(QPaintEvent *)
     painter.drawImage(QPoint(0,0), _qimage);
 
 
-    QString coordinates = QString("%1,%2 m").arg(m_mousex * m_scalex - m_offsetx).arg(m_mousey * m_scaley - m_offsety);
+    QString coordinates = QString("%1,%2 m").arg(m_mousex * m_scale + m_offsetx).arg(- (m_mousey - _qimage.height()) * m_scale + m_offsety);
 
     painter.setPen(QColor(Qt::white));
     if(m_holdPressed)
     {
-        double rx = (pt1.x() - pt2.x()) * m_scalex;
-        double ry = (pt1.y() - pt2.y()) * m_scaley;
+        double rx = (pt1.x() - pt2.x()) * m_scale;
+        double ry = (pt1.y() - pt2.y()) * m_scale;
         double dist = sqrt((rx * rx) + (ry * ry));
         coordinates += QString("\nd=%1 m").arg(dist);
         painter.drawLine(pt1, pt2);
@@ -81,12 +85,8 @@ void MapViewer::refreshOffsetY(double y)
     m_offsety = y;
 }
 
-void MapViewer::refreshScaleX(double x)
+void MapViewer::refreshScale(double s)
 {
-    m_scalex = x;
+    m_scale = s;
 }
 
-void MapViewer::refreshScaleY(double y)
-{
-    m_scaley = y;
-}

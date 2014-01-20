@@ -7,12 +7,15 @@
 #include <QPushButton>
 #include <QFormLayout>
 #include <QVariant>
+#include <QPoint>
+#include <QInputDialog>
 
 #include "environmentengine.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
+    m_autoscaleEnabled = false;
     QWidget *centralWidget = new QWidget(this);
 
     QMenuBar *menuBar = new QMenuBar();
@@ -72,12 +75,21 @@ MainWindow::MainWindow(QWidget *parent) :
     p_dronePositionLineEdit = new QLineEdit();
     p_dronePositionLineEdit->setEnabled(false);
 
-    p_droneScaleXLineEdit = new QDoubleSpinBox();
-    p_droneScaleYLineEdit = new QDoubleSpinBox();
-    p_droneScaleXLineEdit->setRange(0.00001, 1000000.0);
-    p_droneScaleYLineEdit->setRange(0.00001, 1000000.0);
-    p_droneScaleXLineEdit->setValue(1.0);
-    p_droneScaleYLineEdit->setValue(1.0);
+    QHBoxLayout *hscale = new QHBoxLayout();
+    p_autoScaleButton = new QPushButton("Auto scale");
+    p_stopScaleButton = new QPushButton("Stop");
+    hscale->addWidget(p_autoScaleButton);
+    hscale->addWidget(p_stopScaleButton);
+    p_stopScaleButton->setEnabled(false);
+
+    p_scaleXLineEdit = new QDoubleSpinBox();
+    p_scaleYLineEdit = new QDoubleSpinBox();
+    p_scaleXLineEdit->setRange(0.0001, 1000000.0);
+    p_scaleYLineEdit->setRange(0.0001, 1000000.0);
+    p_scaleXLineEdit->setValue(1.0);
+    p_scaleYLineEdit->setValue(1.0);
+    p_scaleXLineEdit->setDecimals(4);
+    p_scaleYLineEdit->setDecimals(4);
 
     p_droneOffsetXLineEdit = new QDoubleSpinBox();
     p_droneOffsetYLineEdit = new QDoubleSpinBox();
@@ -85,12 +97,13 @@ MainWindow::MainWindow(QWidget *parent) :
     p_droneOffsetYLineEdit->setRange(-DBL_MAX, DBL_MAX);
 
     droneInfo->addRow(new QLabel("Drone position"), p_dronePositionLineEdit);
-    droneInfo->addRow(new QLabel("Scale X"), p_droneScaleXLineEdit);
-    droneInfo->addRow(new QLabel("Scale Y"), p_droneScaleYLineEdit);
+    droneInfo->addRow(new QLabel("Scale X"), p_scaleXLineEdit);
+    droneInfo->addRow(new QLabel("Scale Y"), p_scaleYLineEdit);
 
     droneInfo->addRow(new QLabel("Offset X"), p_droneOffsetXLineEdit);
     droneInfo->addRow(new QLabel("Offset Y"), p_droneOffsetYLineEdit);
     infoVLay->addLayout(droneInfo);
+    infoVLay->addLayout(hscale);
     infoVLay->addLayout(tagvlay);
     infoVLay->setMargin(10);
 
@@ -121,10 +134,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(p_droneOffsetYLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(offsetYChanged(double)));
     connect(p_droneOffsetYLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshOffsetY(double)));
 
-    connect(p_droneScaleXLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(scaleXChanged(double)));
-    connect(p_droneScaleXLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScaleX(double)));
-    connect(p_droneScaleYLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(scaleYChanged(double)));
-    connect(p_droneScaleYLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScaleY(double)));
+    connect(p_scaleXLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(scaleChanged(double)));
+    connect(p_scaleXLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScale(double)));
+    connect(p_scaleYLineEdit, SIGNAL(valueChanged(double)), this, SIGNAL(scaleChanged(double)));
+    connect(p_scaleYLineEdit, SIGNAL(valueChanged(double)), p_imageViewer, SLOT(refreshScale(double)));
+
+    connect(p_scaleXLineEdit, SIGNAL(valueChanged(double)), p_scaleYLineEdit, SLOT(setValue(double)));
+    connect(p_scaleYLineEdit, SIGNAL(valueChanged(double)), p_scaleXLineEdit, SLOT(setValue(double)));
+
+    connect(p_autoScaleButton, SIGNAL(clicked()), this, SLOT(autoscale()));
+    connect(p_stopScaleButton, SIGNAL(clicked()), this, SLOT(abortAutoscale()));
 
     connect(p_addButton, SIGNAL(clicked()), this, SIGNAL(addTagAsked()));
     connect(p_removeButton, SIGNAL(clicked()), this, SLOT(removeTag()));
@@ -147,7 +166,7 @@ void MainWindow::refreshTagsTable(const QList<EnvironmentEngine::Tag> &tagsList)
     headersList << "Code" << "Value" << "X" << "Y";
     p_tagsTableWidget->setHorizontalHeaderLabels(headersList);
     QTableWidgetItem *item;
-    int newRow;
+
     for(int i=0; i<tagsList.size(); i++)
     {
         item = new QTableWidgetItem(QString("%1").arg(tagsList.at(i).code));
@@ -196,6 +215,40 @@ void MainWindow::removeTag()
     emit removeTagAsked(pos);
 }
 
+void MainWindow::autoscale()
+{
+    m_autoscaleEnabled = true;
+    connect(p_imageViewer, SIGNAL(measurePoints(QPoint,QPoint)), this, SLOT(endAutoscale(QPoint,QPoint)));
+    p_stopScaleButton->setEnabled(true);
+    p_autoScaleButton->setEnabled(false);
+}
+
+void MainWindow::endAutoscale(QPoint p1, QPoint p2)
+{
+    disconnect(p_imageViewer, SIGNAL(measurePoints(QPoint,QPoint)), this, SLOT(endAutoscale(QPoint,QPoint)));
+    double rx = p1.x() - p2.x();
+    double ry = p1.y() - p2.y();
+    bool ok;
+    double d_user = QInputDialog::getDouble(this, "Auto scale", "Give the distance of the measure",0.0, 0.0, 2147483647, 3, &ok);
+
+    if(ok)
+    {
+        double newScale = d_user / sqrt((rx * rx) + (ry * ry));
+        p_scaleXLineEdit->setValue(newScale);
+        p_scaleYLineEdit->setValue(newScale);
+        emit scaleChanged(newScale);
+    }
+    p_stopScaleButton->setEnabled(false);
+    p_autoScaleButton->setEnabled(true);
+}
+
+void MainWindow::abortAutoscale()
+{
+    disconnect(p_imageViewer, SIGNAL(measurePoints(QPoint,QPoint)), this, SLOT(endAutoscale(QPoint,QPoint)));
+    p_stopScaleButton->setEnabled(false);
+    p_autoScaleButton->setEnabled(true);
+}
+
 
 /** @brief Refreshes the drone position in the line edit
   */
@@ -207,11 +260,11 @@ void MainWindow::refreshDronePosition(const EnvironmentEngine::DoublePoint &p)
 
 /** @brief Refreshed the offset and scale of the map in the corresponding line edit.
   */
-void MainWindow::refreshOffsetAndScale(const EnvironmentEngine::DoublePoint &offset, const EnvironmentEngine::DoublePoint &scale)
+void MainWindow::refreshOffsetAndScale(const EnvironmentEngine::DoublePoint &offset, double scale)
 {
     p_droneOffsetXLineEdit->setValue(offset.x());
     p_droneOffsetYLineEdit->setValue(offset.y());
-    p_droneScaleXLineEdit->setValue(scale.x());
-    p_droneScaleYLineEdit->setValue(scale.y());
+    p_scaleXLineEdit->setValue(scale);
+    p_scaleYLineEdit->setValue(scale);
 }
 

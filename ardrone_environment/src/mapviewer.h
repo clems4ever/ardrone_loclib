@@ -17,19 +17,21 @@ protected:
 
     void paintEvent(QPaintEvent *);
 
+signals:
+    void measurePoints(QPoint p1, QPoint p2);
+
 public slots:
     void refreshOffsetX(double);
     void refreshOffsetY(double);
 
-    void refreshScaleX(double);
-    void refreshScaleY(double);
+    void refreshScale(double);
 
 private:
     QPoint pt1, pt2;
     bool m_holdPressed;
 
     int m_offsetx, m_offsety;
-    double m_scalex, m_scaley;
+    double m_scale;
 };
 
 #endif // MAPVIEWER_H

@@ -35,8 +35,7 @@ ARDroneEnvironment::ARDroneEnvironment(QObject *parent) :
     // Refreshes the offset and scale when modified in the GUI
     connect(p_mainWindow, SIGNAL(offsetXChanged(double)), p_environmentEngine, SLOT(setOffsetX(double)));
     connect(p_mainWindow, SIGNAL(offsetYChanged(double)), p_environmentEngine, SLOT(setOffsetY(double)));
-    connect(p_mainWindow, SIGNAL(scaleXChanged(double)), p_environmentEngine, SLOT(setScaleX(double)));
-    connect(p_mainWindow, SIGNAL(scaleYChanged(double)), p_environmentEngine, SLOT(setScaleY(double)));
+    connect(p_mainWindow, SIGNAL(scaleChanged(double)), p_environmentEngine, SLOT(setScale(double)));
 
     connect(p_environmentEngine, SIGNAL(environmentImagePublished(QImage)), p_mainWindow, SLOT(refreshEnvironmentImage(QImage)) );
     connect(p_environmentEngine, SIGNAL(dronePositionUpdated()), this, SLOT(refreshDronePosition()));

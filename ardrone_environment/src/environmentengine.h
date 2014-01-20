@@ -85,7 +85,7 @@ public:
     const DoublePoint& getDronePosition() const;
     const DoublePoint& getDroneImagePosition() const;
     const DoublePoint& getOffset() const;
-    const DoublePoint& getScale() const;
+    double getScale() const;
     void setMission(const Path& p);
 
     void computeImage();
@@ -111,9 +111,7 @@ public slots:
     void setOffsetX(double x);
     void setOffsetY(double y);
 
-    void setScale(double x, double y);
-    void setScaleX(double x);
-    void setScaleY(double y);
+    void setScale(double s);
 
     void updateTag(int,QString,QString,double,double);
 
@@ -152,7 +150,7 @@ private:
     // 2D array that represents the map
     Tile **p_tilesArray;
 
-    DoublePoint m_scale;
+    double m_scale;
     DoublePoint m_offset;
 
     int m_lastTagId;
