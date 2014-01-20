@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     QCoreApplication app(argc, argv);
     ros::init(argc, argv, "ardrone_simulator", ros::init_options::NoSigintHandler);
     qDebug("ARDrone Simulator starting...");
-    SimulatorEngine engine;
+    ARDroneTrajectory engine;
 
     engine.start();
     //qDebug("ARDrone Environment node is ending...");

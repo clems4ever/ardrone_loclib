@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QThread>
 
-class SimulatorEngine;
+class ARDroneTrajectory;
 
 #include "ardrone_environment/ARDronePosition2D.h"
 #include "ardrone_environment/ARDroneMapSrv.h"
@@ -13,7 +13,7 @@ class ros_wrapper : public QThread
 {
     Q_OBJECT
 public:
-    ros_wrapper(SimulatorEngine *simu, QObject *parent = 0);
+    ros_wrapper(ARDroneTrajectory *simu, QObject *parent = 0);
 
     void run();
 
@@ -24,7 +24,7 @@ public slots:
 private:
     bool m_isRunning;
 
-    SimulatorEngine *p_simulator;
+    ARDroneTrajectory *p_simulator;
 
 };
 

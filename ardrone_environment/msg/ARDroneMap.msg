@@ -1,3 +1,4 @@
-string name
 ARDroneMapColumns[] tiles
-float32 scale
+float64 scale
+float64 offsetx
+float64 offsety
