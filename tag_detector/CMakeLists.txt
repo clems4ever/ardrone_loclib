@@ -21,29 +21,10 @@ rosbuild_genmsg()
 #uncomment if you have defined services
 rosbuild_gensrv()
 
-# ARDroneEnvironment
-#FIND_PACKAGE(Qt4 REQUIRED)
-#
-#SET(ardrone_environment_DIR src/ardrone_environment)
-#SET(ardrone_environment_SOURCES main.cpp environmentengine.cpp map2d.cpp ros_wrapper.cpp)
-#SET(ardrone_environment_s prepend_path( ardrone_environment_SOURCES ${ardrone_environment_DIR} ))
-#SET(ardrone_environment_HEADERS environmentengine.h map2d.h ros_wrapper.h)
-#SET(ardrone_environment_h prepend_path( ardrone_environment_HEADERS ${ardrone_environment_DIR} ))
-#
-#QT4_WRAP_CPP(ardrone_environment_HEADERS_MOC ${ardrone_environment_h})
-#
-#INCLUDE(${QT_USE_FILE})
-#ADD_DEFINITIONS(${QT_DEFINITIONS})
-#
-#ADD_EXECUTABLE(ardrone_environment ${ardrone_environment_s} 
-#    ${ardrone_environment_HEADERS_MOC})
-#TARGET_LINK_LIBRARIES(ardrone_environment ${QT_LIBRARIES})
-
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 #rosbuild_add_executable(example examples/example.cpp)
-#rosbuild_add_executable(odom_to_path src/rviz_tools/odom_to_path.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
