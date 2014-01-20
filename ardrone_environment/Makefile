@@ -36,10 +36,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/user/Roxannews/ardrone_loclib/ardrone_environment
+CMAKE_SOURCE_DIR = /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/user/Roxannews/ardrone_loclib/ardrone_environment
+CMAKE_BINARY_DIR = /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -66,9 +66,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/Roxannews/ardrone_loclib/ardrone_environment/CMakeFiles /home/user/Roxannews/ardrone_loclib/ardrone_environment/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment/CMakeFiles /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/Roxannews/ardrone_loclib/ardrone_environment/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/clems/ros_fuerte/sandbox/ardrone_loclib/ardrone_environment/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -122,19 +122,6 @@ ROSBUILD_genmsg_lisp/fast:
 .PHONY : ROSBUILD_genmsg_lisp/fast
 
 #=============================================================================
-# Target rules for targets named ROSBUILD_genmsg_py
-
-# Build rule for target.
-ROSBUILD_genmsg_py: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ROSBUILD_genmsg_py
-.PHONY : ROSBUILD_genmsg_py
-
-# fast build rule for target.
-ROSBUILD_genmsg_py/fast:
-	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_py.dir/build.make CMakeFiles/ROSBUILD_genmsg_py.dir/build
-.PHONY : ROSBUILD_genmsg_py/fast
-
-#=============================================================================
 # Target rules for targets named ROSBUILD_gensrv_cpp
 
 # Build rule for target.
@@ -159,19 +146,6 @@ ROSBUILD_gensrv_lisp: cmake_check_build_system
 ROSBUILD_gensrv_lisp/fast:
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_lisp.dir/build.make CMakeFiles/ROSBUILD_gensrv_lisp.dir/build
 .PHONY : ROSBUILD_gensrv_lisp/fast
-
-#=============================================================================
-# Target rules for targets named ROSBUILD_gensrv_py
-
-# Build rule for target.
-ROSBUILD_gensrv_py: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ROSBUILD_gensrv_py
-.PHONY : ROSBUILD_gensrv_py
-
-# fast build rule for target.
-ROSBUILD_gensrv_py/fast:
-	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_py.dir/build.make CMakeFiles/ROSBUILD_gensrv_py.dir/build
-.PHONY : ROSBUILD_gensrv_py/fast
 
 #=============================================================================
 # Target rules for targets named ardrone_environment
@@ -239,19 +213,6 @@ rospack_genmsg/fast:
 .PHONY : rospack_genmsg/fast
 
 #=============================================================================
-# Target rules for targets named rospack_genmsg_all
-
-# Build rule for target.
-rospack_genmsg_all: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 rospack_genmsg_all
-.PHONY : rospack_genmsg_all
-
-# fast build rule for target.
-rospack_genmsg_all/fast:
-	$(MAKE) -f CMakeFiles/rospack_genmsg_all.dir/build.make CMakeFiles/rospack_genmsg_all.dir/build
-.PHONY : rospack_genmsg_all/fast
-
-#=============================================================================
 # Target rules for targets named rospack_genmsg_libexe
 
 # Build rule for target.
@@ -276,19 +237,6 @@ rospack_gensrv: cmake_check_build_system
 rospack_gensrv/fast:
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/build
 .PHONY : rospack_gensrv/fast
-
-#=============================================================================
-# Target rules for targets named rospack_gensrv_all
-
-# Build rule for target.
-rospack_gensrv_all: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 rospack_gensrv_all
-.PHONY : rospack_gensrv_all
-
-# fast build rule for target.
-rospack_gensrv_all/fast:
-	$(MAKE) -f CMakeFiles/rospack_gensrv_all.dir/build.make CMakeFiles/rospack_gensrv_all.dir/build
-.PHONY : rospack_gensrv_all/fast
 
 #=============================================================================
 # Target rules for targets named test
@@ -543,10 +491,8 @@ help:
 	@echo "... depend"
 	@echo "... ROSBUILD_genmsg_cpp"
 	@echo "... ROSBUILD_genmsg_lisp"
-	@echo "... ROSBUILD_genmsg_py"
 	@echo "... ROSBUILD_gensrv_cpp"
 	@echo "... ROSBUILD_gensrv_lisp"
-	@echo "... ROSBUILD_gensrv_py"
 	@echo "... ardrone_environment"
 	@echo "... clean-test-results"
 	@echo "... edit_cache"
@@ -554,10 +500,8 @@ help:
 	@echo "... rosbuild_precompile"
 	@echo "... rosbuild_premsgsrvgen"
 	@echo "... rospack_genmsg"
-	@echo "... rospack_genmsg_all"
 	@echo "... rospack_genmsg_libexe"
 	@echo "... rospack_gensrv"
-	@echo "... rospack_gensrv_all"
 	@echo "... test"
 	@echo "... test-future"
 	@echo "... test-results"

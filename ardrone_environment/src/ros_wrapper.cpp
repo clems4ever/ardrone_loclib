@@ -27,6 +27,7 @@ void ros_wrapper::run()
 
     ros::ServiceServer s1 = n.advertiseService("ardrone_loclib_map", ros_wrapper::sendStaticMap);
     ros::ServiceServer s2 = n.advertiseService("ardrone_loclib_tags", ros_wrapper::sendTagList);
+    m_missionServiceClient = n.serviceClient<ardrone_msgs::ARDroneTrajectorySrv>("ardrone_loclib_trajectory");
 
     image_transport::Publisher environmentPublisher = it.advertise("ardrone_loclib_image", 100);
     sensor_msgs::ImagePtr msg;
@@ -77,7 +78,7 @@ void ros_wrapper::storeEnvironmentEngine(EnvironmentEngine *env)
 /** @brief Sends a 2d array of the tiles composing the map (Wall or empty tile) on the ros bus
   *
   */
-bool ros_wrapper::sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req, ardrone_environment::ARDroneMapSrv::Response &res)
+bool ros_wrapper::sendStaticMap(ardrone_msgs::ARDroneMapSrv::Request &req, ardrone_msgs::ARDroneMapSrv::Response &res)
 {
     qDebug("sending back response");
     if(ros_wrapper::p_environment == 0) return true;
@@ -104,7 +105,7 @@ bool ros_wrapper::sendStaticMap(ardrone_environment::ARDroneMapSrv::Request &req
 /** @brief Sends the list of the tags on the map
   *
   */
-bool ros_wrapper::sendTagList(ardrone_environment::ARDroneTagListSrv::Request &req, ardrone_environment::ARDroneTagListSrv::Response &res)
+bool ros_wrapper::sendTagList(ardrone_msgs::ARDroneTagListSrv::Request &req, ardrone_msgs::ARDroneTagListSrv::Response &res)
 {
     res.tagList.resize(p_environment->getTagsList().size());
     for(int i=0; i<p_environment->getTagsList().size(); i++)
@@ -120,7 +121,7 @@ bool ros_wrapper::sendTagList(ardrone_environment::ARDroneTagListSrv::Request &r
 /** @brief Callback called when the environment receives a path made of all the 2D points the drone will fly over to reach a target (the last point)
   *
   */
-void ros_wrapper::storeMission(const ardrone_environment::ARDroneMission::ConstPtr &mission)
+void ros_wrapper::storeMission(const ardrone_msgs::ARDroneMission::ConstPtr &mission)
 {
     qDebug("Store mission callback");
     EnvironmentEngine::Path p;
@@ -133,7 +134,7 @@ void ros_wrapper::storeMission(const ardrone_environment::ARDroneMission::ConstP
 
 /** @brief Gets the drone position from the topic and refresh its position in the engine.
   */
-void ros_wrapper::locateDrone(const ardrone_environment::ARDronePosition2D::ConstPtr &msg)
+void ros_wrapper::locateDrone(const ardrone_msgs::ARDronePosition2D::ConstPtr &msg)
 {
     p_environment->updateDronePosition(msg->x, msg->y);
 }
@@ -161,6 +162,39 @@ void ros_wrapper::transformQRCode(const std_msgs::String &msg)
             p.z = 0.0;
             m_qrcode_position_pub.publish(p);
         }
+    }
+}
+
+void ros_wrapper::computeTrajectory()
+{
+    ardrone_msgs::ARDroneTrajectorySrv srv;
+    int width = p_environment->getSize().width();
+    int height = p_environment->getSize().height();
+    srv.request.map.tiles.resize(width);
+
+    for(int x=0; x < width; x++)
+    {
+        srv.request.map.tiles.at(x).x.resize(height);
+
+        for(int y=0; y<height; y++)
+        {
+            srv.request.map.tiles.at(x).x.at(y) = p_environment->getTile(x, y);
+        }
+    }
+
+    srv.request.map.scale = p_environment->getScale();
+    srv.request.map.offsetx = p_environment->getOffset().x();
+    srv.request.map.offsety = p_environment->getOffset().y();
+
+    if(m_missionServiceClient.call(srv))
+    {
+        EnvironmentEngine::Path p;
+        for(int i; i<srv.response.trajectory.points.size(); i++)
+        {
+            EnvironmentEngine::DoublePoint pt(srv.response.trajectory.points.at(i).x, srv.response.trajectory.points.at(i).y);
+            p.append(pt);
+        }
+        p_environment->setMission(p);
     }
 }
 

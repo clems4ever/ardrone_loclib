@@ -410,7 +410,7 @@ void EnvironmentEngine::updateTag(int pos, QString code, QString value, double x
 
 void EnvironmentEngine::computeTrajectory()
 {
-    ros_wrapper->computeTrajectory();
+    m_rosWrapper.computeTrajectory();
 }
 
 /** @brief private method that frees the allocated memory
