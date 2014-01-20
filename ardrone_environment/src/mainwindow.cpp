@@ -264,7 +264,6 @@ void MainWindow::abortAutoscale()
   */
 void MainWindow::mission()
 {
-    m_autoscaleEnabled = true;
     connect(p_imageViewer, SIGNAL(clickedPoint(QPoint)), this, SLOT(endMission(QPoint)));
     p_abortMissionButton->setEnabled(true);
     p_defineMissionButton->setEnabled(false);

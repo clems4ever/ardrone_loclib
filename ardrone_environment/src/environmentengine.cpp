@@ -408,9 +408,9 @@ void EnvironmentEngine::updateTag(int pos, QString code, QString value, double x
     m_tagList.replace(pos, t);
 }
 
-void EnvironmentEngine::computeTrajectory()
+void EnvironmentEngine::computeTrajectory(QPoint p1, QPoint p2)
 {
-    m_rosWrapper.computeTrajectory();
+    m_rosWrapper.computeTrajectory(p1, p2);
 }
 
 /** @brief private method that frees the allocated memory

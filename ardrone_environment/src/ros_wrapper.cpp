@@ -10,6 +10,7 @@
 
 EnvironmentEngine* ros_wrapper::p_environment = 0;
 ros::Publisher ros_wrapper::m_qrcode_position_pub;
+ros::ServiceClient ros_wrapper::m_missionServiceClient;
 
 ros_wrapper::ros_wrapper(QObject *parent) :
     QThread(parent)
@@ -21,13 +22,13 @@ ros_wrapper::ros_wrapper(QObject *parent) :
   */
 void ros_wrapper::run()
 {
+
     ros::NodeHandle n;
     image_transport::ImageTransport it(n);
     ros::Rate loop_rate(5);
 
     ros::ServiceServer s1 = n.advertiseService("ardrone_loclib_map", ros_wrapper::sendStaticMap);
     ros::ServiceServer s2 = n.advertiseService("ardrone_loclib_tags", ros_wrapper::sendTagList);
-    m_missionServiceClient = n.serviceClient<ardrone_msgs::ARDroneTrajectorySrv>("ardrone_loclib_trajectory");
 
     image_transport::Publisher environmentPublisher = it.advertise("ardrone_loclib_image", 100);
     sensor_msgs::ImagePtr msg;
@@ -39,7 +40,10 @@ void ros_wrapper::run()
     ros::Subscriber KalmanPos_sub = n.subscribe("kalman_position", 1000, ros_wrapper::locateDroneFromKalman);
     ros::Subscriber qrcode_transform_sub = n.subscribe("qrcode", 1000, ros_wrapper::transformQRCode);
     m_qrcode_position_pub = n.advertise<geometry_msgs::Point>("tag_position", 100);
+    m_missionServiceClient = n.serviceClient<ardrone_msgs::ARDroneTrajectorySrv>("ardrone_loclib_trajectory");
+
     QImage img;
+
 
     while(ros::ok()){
         if(p_environment != 0 && p_environment->ready())
@@ -165,36 +169,45 @@ void ros_wrapper::transformQRCode(const std_msgs::String &msg)
     }
 }
 
-void ros_wrapper::computeTrajectory()
+void ros_wrapper::computeTrajectory(QPoint p1, QPoint p2)
 {
     ardrone_msgs::ARDroneTrajectorySrv srv;
+    qDebug("ROS Wrapper: compute trajectory");
+    ardrone_msgs::ARDroneTrajectorySrv *p_trajectorySrv = &srv;
     int width = p_environment->getSize().width();
     int height = p_environment->getSize().height();
-    srv.request.map.tiles.resize(width);
 
+    p_trajectorySrv->request.p1.x = p1.x();
+    p_trajectorySrv->request.p1.y = p1.y();
+    p_trajectorySrv->request.p2.x = p2.x();
+    p_trajectorySrv->request.p2.y = p2.y();
+
+    p_trajectorySrv->request.map.tiles.resize(width);
     for(int x=0; x < width; x++)
     {
-        srv.request.map.tiles.at(x).x.resize(height);
+        p_trajectorySrv->request.map.tiles.at(x).x.resize(height);
 
         for(int y=0; y<height; y++)
         {
-            srv.request.map.tiles.at(x).x.at(y) = p_environment->getTile(x, y);
+            p_trajectorySrv->request.map.tiles.at(x).x.at(y) = p_environment->getTile(x, y);
         }
     }
+    p_trajectorySrv->request.map.scale = p_environment->getScale();
+    p_trajectorySrv->request.map.offsetx = p_environment->getOffset().x();
+    p_trajectorySrv->request.map.offsety = p_environment->getOffset().y();
 
-    srv.request.map.scale = p_environment->getScale();
-    srv.request.map.offsetx = p_environment->getOffset().x();
-    srv.request.map.offsety = p_environment->getOffset().y();
-
-    if(m_missionServiceClient.call(srv))
+    qDebug("ROS wrapper call service: compute trajectory");
+    if(m_missionServiceClient.call(*p_trajectorySrv))
     {
         EnvironmentEngine::Path p;
-        for(int i; i<srv.response.trajectory.points.size(); i++)
+        for(int i; i<p_trajectorySrv->response.trajectory.points.size(); i++)
         {
-            EnvironmentEngine::DoublePoint pt(srv.response.trajectory.points.at(i).x, srv.response.trajectory.points.at(i).y);
+            EnvironmentEngine::DoublePoint pt(p_trajectorySrv->response.trajectory.points.at(i).x, p_trajectorySrv->response.trajectory.points.at(i).y);
             p.append(pt);
+            qDebug(QString("%1 / %2").arg(pt.x()).arg(pt.y()).toStdString().c_str());
         }
         p_environment->setMission(p);
     }
 }
+
 

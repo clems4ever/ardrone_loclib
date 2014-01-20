@@ -41,7 +41,7 @@ public:
 
     static void transformQRCode(const std_msgs::String& msg);
 
-    void computeTrajectory();
+    void computeTrajectory(QPoint p1, QPoint p2);
 
 signals:
     void environmentImagePublished(QImage);
@@ -53,7 +53,9 @@ private:
     bool m_isRunning;
 
     static ros::Publisher m_qrcode_position_pub;
-    ros::ServiceClient m_missionServiceClient;
+    static ros::ServiceClient m_missionServiceClient;
+
+    //ardrone_msgs::ARDroneTrajectorySrv *p_trajectorySrv;
 
 };
 

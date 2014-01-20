@@ -115,7 +115,7 @@ public slots:
 
     void updateTag(int,QString,QString,double,double);
 
-    void computeTrajectory();
+    void computeTrajectory(QPoint p1, QPoint p2);
 
 private:
     void freeMemory();
