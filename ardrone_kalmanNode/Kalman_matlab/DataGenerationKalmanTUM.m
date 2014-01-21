@@ -87,12 +87,16 @@ end
 ErreurGPS = 20; 
 ErreurTAG = 1;
 ErreurODOM = 5;
-ErreurTUM = 2;
+ErreurTUM = 3;
 
 
 
 X_GPS = X - ErreurGPS*rand(N,1);
 Y_GPS = Y + ErreurGPS*rand(N,1);
+for j = 50 : 1 : N
+    X_GPS(j,1) = -1000000;
+    Y_GPS(j,1) = -1000000;
+end
 
 
 X_ODOM = X + ErreurODOM*randn(N,1);
@@ -100,8 +104,6 @@ Y_ODOM = Y + ErreurODOM*randn(N,1);
 
 
 X_TUM = X + ErreurTUM*randn(N,1);
-
-
 Y_TUM = Y + ErreurTUM*randn(N,1);
 
 
@@ -109,10 +111,19 @@ Y_TUM = Y + ErreurTUM*randn(N,1);
 
 % On simule la detection d'un TAG tout les 30 m
 
+for j = 1 : 1 : N
+    X_TAG(j,1) = -1000000;
+    Y_TAG(j,1) = -1000000;
+end
+
 for j = 1 : 30 : N
     X_TAG(j,1) = X(j,1) + ErreurTAG*randn(1,1);
     Y_TAG(j,1) = Y(j,1) + ErreurTAG*randn(1,1);
 end
+
+
+
+
 
 
 %plot

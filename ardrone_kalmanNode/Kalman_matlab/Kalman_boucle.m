@@ -1,4 +1,4 @@
-function [ Xk,Pk,Prediction ] = Kalman_boucle( R, Xprec, Pprec, Zprec )
+function [ Xk,Pk,Prediction ] = Kalman_boucle(Cmesure, R, Xprec1, Pprec1, Zprec1 )
 %KALMAN_boucle Summary of this function goes here
 %   Detailed explanation goes here
 % Boucle de filtre de Kalman
@@ -8,70 +8,40 @@ function [ Xk,Pk,Prediction ] = Kalman_boucle( R, Xprec, Pprec, Zprec )
     Te = 1;
     %Process noise
     incertitude_modele = 1;
-    Q = incertitude_modele * eye(4);
+    Q = incertitude_modele * eye(2);
     M = 1;
     
-    Xk=zeros(4,1);  %6 si on prend en compte l'accélération
-    Prediction=zeros(4,1);  %6 si on prend en compte l'accélération
-    Pk=eye(4);     %6 si on prend en compte l'accélération
+    Xk=zeros(2,1);  %6 si on prend en compte l'accélération
+    Prediction=zeros(2,1);  %6 si on prend en compte l'accélération
+    Pk=eye(2);     %6 si on prend en compte l'accélération
     Zk=zeros(8,1); %10 si on prend en compte l'accélération
     In=zeros(8,1); %10
-     
+    Xprec=zeros(2,1);
+    Xprec=Xprec1;
+    C=zeros(8,2);
+    C=Cmesure; 
+    
+    Pprec=zeros(2,2);
+    Zprec=zeros(8,1);
+    Pprec=Pprec1;
+    Zprec=Zprec1;
     
     % Matrice d'état
-    A = [1  0   Te   0;      %position, vitesse sur X
-         0  1   0   Te;     %position, vitesse sur X 
-         0  0   1   0;      %vitesse sur X
-         0  0   0   1];     %vitesse sur Y
+    A = [1  0       %position, vitesse sur X
+         0  1];      %position, vitesse sur Y 
+         
 
     % Matrice des mesures
-    C=[ 1 0 0 0      %position X     GPS
-        0 1 0 0      %position Y     GPS
-        1 0 0 0      %position X     ODOM
-        0 1 0 0      %position Y     ODOM
-        1 0 0 0      %position X     TAG
-        0 1 0 0      %position Y     TAG
-        0 0 1 0      %vitesse X      VIMU
-        0 0 0 1];    %vitesse Y      VIMU
+%     C=[ 1 0      %position X     GPS
+%         0 1      %position Y     GPS
+%         1 0      %position X     ODOM
+%         0 1      %position Y     ODOM
+%         1 0      %position X     TAG
+%         0 1      %position Y     TAG
+%         1 0      %position X     XTUM
+%         0 1];    %position Y     YTUM
 
-% /!\ ne fonctionne pas lorsque l'on génére le code matlab en C
-%     %Maj de C en fonction de la présence où non des mesures /!\
-%      %GPS
-%      if ( Zprec(1) > 2000000 || Zprec(2) > 2000000 )
-%         C(1,:) = [0 0 0 0];
-%         C(2,:) = [0 0 0 0];     
-%      else
-%          C(1,:) = [1 0 0 0];
-%          C(2,:) = [0 1 0 0];
-%      end
-%      
-%      %ODOM
-%      if ( Zprec(3) > 2000000 || Zprec(4) > 2000000 )
-%         C(3,:) = [0 0 0 0];
-%         C(4,:) = [0 0 0 0];     
-%      else
-%          C(3,:) = [1 0 0 0];
-%          C(4,:) = [0 1 0 0];
-%      end
-%      
-%      %TAG
-%      if ( Zprec(5) > 2000000 || Zprec(6) > 2000000 )
-%         C(5,:) = [0 0 0 0];
-%         C(6,:) = [0 0 0 0];      
-%      else
-%          C(5,:) = [1 0 0 0];
-%          C(6,:) = [0 1 0 0];
-%      end   
-%      
-%      %IMU
-%      if ( Zprec(7) > 2000000 || Zprec(8) > 2000000 )
-%         C(7,:) = [0 0 0 0];
-%         C(8,:) = [0 0 0 0];      
-%      else
-%          C(7,:) = [0 0 1 0];
-%          C(8,:) = [0 0 0 1];
-%      end   
-    
+
     
     
     
@@ -85,13 +55,12 @@ function [ Xk,Pk,Prediction ] = Kalman_boucle( R, Xprec, Pprec, Zprec )
     
     %Mise a jour
     Xk=Xk+Kk*In;
-    Pk=(eye(4)-Kk*C)*Pk;
+    Pk=(eye(2)-Kk*C)*Pk;
     
     %Incrementation
     Prediction(1)=Xk(1); %X
     Prediction(2)=Xk(2); %Y
-    Prediction(3)=Xk(3); %VX
-    Prediction(4)=Xk(4); %VY
+    
     
 end
 
