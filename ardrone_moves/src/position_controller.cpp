@@ -3,7 +3,7 @@
 #include "rtwtypes.h"                    /* MathWorks types */
 
 #include <ros/ros.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include "ardrone_moves/SwitchOnOff.h"
 #include "ardrone_moves/ControllerState.h"
@@ -96,7 +96,7 @@ void target_callback(const geometry_msgs::Pose::ConstPtr& consigne){
 	Pos_Controller_U.consigne[0]=consigne->position.x;
 	Pos_Controller_U.consigne[1]=consigne->position.y;
 	Pos_Controller_U.consigne[2]=consigne->position.z;
-	Pos_Controller_U.yaw_cons=consigne->orientation.z;
+	Pos_Controller_U.yaw_cons=consigne->orientation.z+PI/2;
 	trajectory_plan.clear();//clear the trajectory plan
 	ROS_DEBUG("new consigne : %f %f %f",Pos_Controller_U.consigne[0],Pos_Controller_U.consigne[1],Pos_Controller_U.consigne[2]);
 }
@@ -111,15 +111,17 @@ void trajectory_plan_callback(const ardrone_msgs::ARDroneTrajectory::ConstPtr& t
 	ROS_DEBUG("new set point : %f %f %f",Pos_Controller_U.consigne[0],Pos_Controller_U.consigne[1],Pos_Controller_U.consigne[2]);
 }
 
-void pose_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&	pose){
+void pose_callback(const geometry_msgs::Pose::ConstPtr&	pose){
 
 	double roll,pitch,yaw;
 
-		Pos_Controller_U.position[0]=pose->pose.pose.position.x;
-		Pos_Controller_U.position[1]=pose->pose.pose.position.y;
-		Pos_Controller_U.position[2]=pose->pose.pose.position.z;
-		tf::Matrix3x3(tf::Quaternion(pose->pose.pose.orientation.x,pose->pose.pose.orientation.y,pose->pose.pose.orientation.z,pose->pose.pose.orientation.w)).getRPY(roll,pitch,yaw);
-		Pos_Controller_U.yaw=yaw+PI/2;
+		Pos_Controller_U.position[0]=pose->position.x;
+		Pos_Controller_U.position[1]=pose->position.y;
+		Pos_Controller_U.position[2]=pose->position.z;
+		//tf::Matrix3x3(tf::Quaternion(pose->orientation.x,pose->orientation.y,pose->orientation.z,pose->orientation.w)).getRPY(roll,pitch,yaw);
+		//ROS_DEBUG("orientation RPY : %f %f %f",roll,pitch,yaw);
+		Pos_Controller_U.yaw=pose->orientation.z+PI/2;
+		//TODO :Pos_Controller_U.yaw=yaw+PI/2;
 
 }
 
@@ -162,6 +164,7 @@ void step_PID(void){
 		epsilon.position.x=-Pos_Controller_U.position[0]+Pos_Controller_U.consigne[0];
 		epsilon.position.y=-Pos_Controller_U.position[1]+Pos_Controller_U.consigne[1];
 		epsilon.position.z=-Pos_Controller_U.position[2]+Pos_Controller_U.consigne[2];
+		epsilon.orientation.z=Pos_Controller_U.yaw_cons-Pos_Controller_U.yaw;
 #ifdef DEBUG_POS_CONTROLLER_OUTPUTS
 
 		//assert length are equals in absolute and drone speed
@@ -246,7 +249,7 @@ int main(int argc,  char *argv[]){
 	Pos_Controller_U.consigne[0]=0;
 	Pos_Controller_U.consigne[1]=0;
 	Pos_Controller_U.consigne[2]=1;
-	Pos_Controller_U.yaw_cons=0;
+	Pos_Controller_U.yaw_cons=+PI/2;
 	Pos_Controller_U.yaw_is_relative=0;
 	Pos_Controller_U.position[0]=0;
 	Pos_Controller_U.position[1]=0;

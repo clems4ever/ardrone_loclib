@@ -24,6 +24,7 @@
 
 	<!-- launch position controller from gps data -->
 	<node pkg="ardrone_moves" type="position_controller" name="position_control" required="true" output="screen"/>
+	
 
 	<!-- ardrone_moves_gui for controlling the drone -->
 	<node pkg="ardrone_moves_gui" type="ardrone_moves_gui" name="ardrone_moves_gui" required="false" output="screen"/>
@@ -33,8 +34,12 @@
 		<remap from="point" to="gps_odom_position"/>
 	</node>
 
-	<node pkg="ardrone_environment" type="ardrone_environment" name="ardrone_environment">
+	<node pkg="ardrone_environment" type="ardrone_environment" name="ardrone_environment" output="screen">
 		<remap from="/kalman_position" to="/gps_odom_position"/> <!-- subscribe directly to the GPS  odometry publisher-->
+	</node>
+
+	<node pkg="odometry_to_path" type="gps_navdata_to_pose" name="gps_navdata_to_pose">
+		<remap from="pose" to="pose_estimation"/>
 	</node>
 
 
