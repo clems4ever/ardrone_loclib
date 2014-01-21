@@ -43,6 +43,19 @@ The first launch run **tum_ardrone** and **ardrone_autonomy**.
  
 The second run **ardrone_kalmanNode**
 
+### From Matlab to CPP function
+The kalman boucle function in create using Matlab from script in ```Kalman_matlab``` folder. In order to 
+modify these, regenerate the C++ code and implement it in the node, do the following instructions :
+
+   * Modify your MATLAB file and run-it for test
+   * Run ```Kalman_matlab/CodeGeneration.m``` in MATLAB
+   * Copy the new ```Kalman_matlab``` in ```ardrone_kalmanNode``` folder and delete the previous version
+   * Go throught ```codegen/lib/Kalman_Boucle``` folder 
+   * Rename all ".obj" files in ".o"
+   * Rename all ".c" files in ".cpp"
+   * Recompile the node 
+
+
 ### Topics and data
 
 The node publish the predicted position in ```geometry_msgs::Point``` on ```kalman_position``` topic.
