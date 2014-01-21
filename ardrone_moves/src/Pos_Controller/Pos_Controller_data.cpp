@@ -53,7 +53,7 @@ Parameters_Pos_Controller Pos_Controller_P = {
   2.0,                                 /* Expression: 2
                                         * Referenced by: '<S1>/Gain'
                                         */
-  9.0601472541377404E+00,              /* Expression: P
+  4E+00,								               /* Expression: P
                                         * Referenced by: '<S4>/Proportional Gain'
                                         */
   1.0,                                 /* Expression: UpperSaturationLimit

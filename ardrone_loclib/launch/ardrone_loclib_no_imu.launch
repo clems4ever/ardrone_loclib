@@ -1,0 +1,51 @@
+<launch>
+	<!--driver for ardrone-->
+	<include file="$(find ardrone_loclib)/launch/ardrone_autonomy_driver.launch"/>
+
+	<!-- gps toolchain-->
+	<include file="$(find ardrone_loclib)/launch/gps.launch"/>
+
+
+	<!-- tag detection -->
+	<node name="image_proc" pkg="image_proc" type="image_proc" ns="/ardrone"/>
+
+	<node name="ar_pose" pkg="ar_pose" type="ar_single" respawn="false">
+		<param name="marker_pattern" type="string" value="$(find ar_pose)/data/patt.hiro"/>
+		<param name="marker_width" type="double" value="80.0"/>
+		<param name="marker_center_x" type="double" value="0.0"/>
+		<param name="marker_center_y" type="double" value="0.0"/>
+		<param name="threshold" type="int" value="100"/>
+		<param name="use_history" type="bool" value="true"/>
+		<remap from="/usb_cam/image_raw" to="/ardrone/image_rect"/>
+		<remap from="/usb_cam/camera_info" to="/ardrone/camera_info"/>
+	</node>
+
+	<node name="tag_detector" pkg="tag_detector" type="detect.py"/>
+
+
+	<!-- state estimation tum_ardrone-->
+	<!--node name="drone_stateestimation" pkg="tum_ardrone" type="drone_stateestimation" output="screen">
+	</node-->
+
+	<!--state estimation kalman-->
+	<node name="kalmanNode" pkg="ardrone_kalmanNode" type="kalmanNode" output="screen">
+	</node>
+
+	<node pkg="odometry_to_path" type="point_navdata_to_pose" name="kalman_navdata_to_pose"/>
+
+	<node pkg="rosservice" type="rosservice" name="ardrone_imu_recalibration"
+		args="call /ardrone/imu_recalib" />
+
+	<!-- position control -->
+	<node pkg="ardrone_moves" type="position_controller" name="position_control" required="true" output="screen"/>
+
+	<!-- position control GUI -->
+	<node pkg="ardrone_moves_gui" type="ardrone_moves_gui" name="ardrone_moves_gui" required="false" output="screen"/>
+
+	<!-- environment GUI -->
+	<node name="ardrone_environment" pkg="ardrone_environment" type="ardrone_environment" output="screen"/>
+
+	<node name="ardrone_trajectory" pkg="ardrone_trajectory" type="ardrone_trajectory"/>
+
+</launch>
+
