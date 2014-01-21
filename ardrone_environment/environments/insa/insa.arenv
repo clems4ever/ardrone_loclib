@@ -1,0 +1,13 @@
+<Configuration>
+ <background file="insa_background.jpg"/>
+ <mask file="insa_wallmask.bmp"/>
+ <offset x="376035" y="4825272"/>
+ <scale value="0,360301879288836"/>
+ <tags>
+  <tag x="413" y="567" value="x=413;y=567" code="1"/>
+  <tag x="574" y="453" value="x=574;y=453" code="2"/>
+  <tag x="429" y="426" value="x=429;y=426" code="3"/>
+  <tag x="569" y="221" value="x=569;y=221" code="4"/>
+  <tag x="448" y="432,44" value="x=448;y=432" code="5"/>
+ </tags>
+</Configuration>

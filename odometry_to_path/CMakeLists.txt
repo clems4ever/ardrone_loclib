@@ -31,6 +31,7 @@ rosbuild_genmsg()
 #target_link_libraries(${PROJECT_NAME} another_library)
 rosbuild_add_executable(odom_to_path src/odom_to_path.cpp)
 rosbuild_add_executable(odom_to_pose src/odom_to_pose.cpp)
+rosbuild_add_executable(odom_to_point src/odom_to_point.cpp)
 rosbuild_add_executable(gps_navdata_to_pose src/gps_navdata_to_pose.cpp)
 
 #rosbuild_add_executable(altd_control src/altd_control.cpp src/pid.cpp)

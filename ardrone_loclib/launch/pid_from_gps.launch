@@ -1,0 +1,49 @@
+<!-- launch gpsd_client 
+		+ gps to odometry converter 
+		+ odometry (gps) + navdata to posestamped...
+		+ position controller
+-->	 
+<launch>
+	<node pkg="gpsd_client" type="gpsd_client" name="gpsd_client" output="screen" respawn="true">
+    <param name="use_gps_time" value="false"/>
+		<remap from="/fix" to="/ardrone/gps/fix"/>
+		<remap from="/extended_fix" to="/ardrone/gps/extended_fix"/>
+  </node>
+
+	<!--convert gps data to odometry data in UTM position-->
+	<node pkg="gps_common" type="utm_odometry_node" name="gps_to_odom" output="screen" required="true">
+		<param name="frame_id" value="base_gps"/>
+		<remap from="/fix" to="/ardrone/gps/fix"/>
+		<remap from="/odom" to="/gps_odom"/>
+	</node>
+
+	<!-- creates a path from o succession of odometry messages from gps -->
+	<!--node pkg="odometry_to_path" type="gps_navdata_to_pose" name="gps_navdata_to_pose" required="true">
+		<remap from="/pose" to="/pose_estimation"/>
+	</node-->
+
+	<!-- launch position controller from gps data -->
+	<node pkg="ardrone_moves" type="position_controller" name="position_control" required="true" output="screen"/>
+
+	<!-- ardrone_moves_gui for controlling the drone -->
+	<node pkg="ardrone_moves_gui" type="ardrone_moves_gui" name="ardrone_moves_gui" required="false" output="screen"/>
+
+	<node pkg="odometry_to_path" type="odom_to_point" name="gps_odom_to_point">
+		<remap from="odom" to="/gps_odom"/>
+		<remap from="point" to="gps_odom_position"/>
+	</node>
+
+	<node pkg="ardrone_environment" type="ardrone_environment" name="ardrone_environment">
+		<remap from="/kalman_position" to="/gps_odom_position"/> <!-- subscribe directly to the GPS  odometry publisher-->
+	</node>
+
+
+	<!--node pkg="odometry_to_path" type="odom_to_path" name="odom_to_path_gps" output="screen">
+		<remap from="/odom" to="/gps_odom"/>
+	</node-->
+
+	<!--node pkg="tf" type="static_transform_publisher" name="odom_base_gps" args="0 0 0 0 0 0 /base_gps /odom 100"/-->
+
+  <!--node pkg="tf" type="static_transform_publisher" name="mapTF" args="-376186 -4825319 -164 0 0 0 /map /base_gps 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="geiTF" args="376185.20354 4825370.37057 112 0 0 0 /base_gps /gei 100"/-->
+ </launch>

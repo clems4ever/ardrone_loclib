@@ -1,0 +1,7 @@
+<Configuration>
+ <background file="background.bmp"/>
+ <mask file="wallmask.bmp"/>
+ <offset x="376172" y="4825332"/>
+ <scale value="0,2175165472463179"/>
+ <tags/>
+</Configuration>

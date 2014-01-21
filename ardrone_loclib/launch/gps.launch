@@ -1,0 +1,13 @@
+<launch>
+	<node pkg="gpsd_client" type="gpsd_client" name="gpsd_client" output="screen" respawn="true">
+    <param name="use_gps_time" value="false"/>
+		<remap from="/fix" to="/ardrone/gps/fix"/>
+		<remap from="/extended_fix" to="/ardrone/gps/extended_fix"/>
+  </node>
+
+	<node pkg="gps_common" type="utm_odometry_node" name="gps_to_odom" output="screen" required="true">
+		<param name="frame_id" value="base_gps"/>
+		<remap from="/fix" to="/ardrone/gps/fix"/>
+		<remap from="/odom" to="/gps_odom"/>
+	</node>
+ </launch>
