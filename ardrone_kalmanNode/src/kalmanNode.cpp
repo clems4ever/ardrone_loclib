@@ -1,3 +1,6 @@
+// Pour publier un TAG :
+// rostopic pub tag_position geometry_msgs/Point '{x: 20000, y: 40000, z: 0}'
+
 /*
  * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
  *
@@ -54,8 +57,8 @@ double x_gps=0.0;
 double y_gps=0.0;
 
 //Initialisation du tag avec une valeur GPS
-double x_tag=376227.0;
-double y_tag=4825399.0;
+double x_tag=0.0;
+double y_tag=0.0;
 double x_odom=0.0;
 double y_odom=0.0;
 
@@ -244,22 +247,22 @@ double checkData(bool t, double v, int matrix_zone, int type)
     // Si variable non fraiche
     if(t==false)
     {
-      R_point[matrix_zone]=999999;
+      R_point[matrix_zone]=1000000000;
       
-      // Même avec une covariance élevée, on a un doute de l'impact de la mesure, on l'initialise à une valeur proche
+      /* Même avec une covariance élevée, on a un doute de l'impact de la mesure, on l'initialise à une valeur proche
       // Si coordonnée sur x
-      if(matrix_zone == 0 || matrix_zone == 18 || matrix_zone == 54)
+      if(matrix_zone == 0 || matrix_zone == 18 || matrix_zone == 36 || matrix_zone == 54)
       {ROS_INFO("ANGLE -> yaw: %f, theta: %f ", yaw_current, teta);
             val = Prediction_point[0];
       }
       
       // Si coordonnée sur x
-      if(matrix_zone == 9 || matrix_zone == 27 || matrix_zone == 63)
+      if(matrix_zone == 9 || matrix_zone == 27 || matrix_zone == 45 || matrix_zone == 63)
       {
             val = Prediction_point[1];
       }    
-      
-      //val=v;
+      */
+      val=v;
     }
     // Sinon ...
     else 
@@ -292,8 +295,8 @@ int main(int argc, char **argv)
   timeStamp=ros::Time::now().toSec();
 
   //Publisher
-  //ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("kalman_position", 10);
-  ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Pose>("kalman_position", 10);
+  ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("kalman_position", 10);
+  //ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Pose>("kalman_position", 10);
   
   ros::Publisher reset_tum_pub = n.advertise<std_msgs::String>("tum_ardrone/com",50);
     
@@ -304,8 +307,8 @@ int main(int argc, char **argv)
   rst.data = ss.str();
   
   // Déclaration du message qui servira à publier la position estimée du kalman
-  //geometry_msgs::Point positionMsg;
-  geometry_msgs::Pose positionMsg;
+  geometry_msgs::Point positionMsg;
+  //geometry_msgs::Pose positionMsg;
 
   //Subscriber
   ros::Subscriber TUM_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackTUM);
@@ -349,9 +352,17 @@ int main(int argc, char **argv)
 
         //Fonction Kalman Boucle 
         //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
-        ROS_INFO("TUM -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
-        ROS_INFO("IMU -> x_imu: %f, y_imu: %f",x_imu, y_imu);
-        //ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
+        //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
+        //ROS_INFO("IMU -> x_imu: %f, y_imu: %f",x_imu, y_imu);
+        
+        ROS_INFO("RTUM -> x_Rtum: %f, y_Rtum: %f ",x_tum, y_tum);       
+        ROS_INFO("ATUM -> x_Atum: %f, y_Atum: %f ",x_imu, y_imu);
+        ROS_INFO("TUM -> x_tum: %f, y_tum: %f ",Zprec_point[6], Zprec_point[7]);
+        ROS_INFO("GPS -> x_gps: %f, y_gps: %f ",Zprec_point[0], Zprec_point[1]);
+        ROS_INFO("ODOM -> x_odom: %f, y_odom: %f ",Zprec_point[2], Zprec_point[3]);
+        ROS_INFO("TAG -> x_tag: %f, y_tag: %f ",Zprec_point[4], Zprec_point[5]);
+        ROS_INFO("ANGLE -> yaw: %f, theta: %f ", yaw_current, teta);
+        ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
         
         Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
 
@@ -369,12 +380,12 @@ int main(int argc, char **argv)
         Pprec_point=Pk_point;
         
         //Publication de la position issue du Kalman
-        /* message type Point
+        // message type Point
         positionMsg.x = Prediction_point[0];
         positionMsg.y = Prediction_point[1];
         positionMsg.z = z_tum;
-        */
-        // message type Pose
+        
+        /* message type Pose
         positionMsg.position.x = Prediction_point[0];
         positionMsg.position.y = Prediction_point[1];
         positionMsg.position.z = z_tum;
@@ -382,16 +393,11 @@ int main(int argc, char **argv)
         positionMsg.orientation.y = 0;  // useless
         positionMsg.orientation.z = 0;  // Orientation absolue du drone
         positionMsg.orientation.w = 0;  // useless
-        
+        */
 
         KalmanPos_pub.publish(positionMsg);
         
-        ROS_INFO("RTUM -> x_Rtum: %f, y_Rtum: %f ",x_tum, y_tum);       
-        ROS_INFO("ATUM -> x_Atum: %f, y_Atum: %f ",x_imu, y_imu);
-        ROS_INFO("GPS -> x_gps: %f, y_gps: %f",x_gps, y_gps);
-        ROS_INFO("ODOM -> x_odom: %f, y_odom: %f",x_odom, y_odom);
-        ROS_INFO("TAG -> x_tag: %f, y_tag: %f",x_tag, y_tag);
-        ROS_INFO("ANGLE -> yaw: %f, theta: %f \n\n", yaw_current, teta);
+        
 
         ros::spinOnce();
 

@@ -85,10 +85,10 @@ end
 
 %génération des bruits de mesure
 ErreurGPS = 20; 
-ErreurTAG = 1;
+ErreurTAG = 0.01;
 ErreurODOM = 5;
-ErreurA = 1;
-ErreurV = ErreurA.^2;
+ErreurTUM = 2;
+
 
 
 X_GPS = X - ErreurGPS*rand(N,1);
@@ -99,62 +99,62 @@ X_ODOM = X + ErreurODOM*randn(N,1);
 Y_ODOM = Y + ErreurODOM*randn(N,1);
 
 
-VX_IMU = VX + ErreurV*randn(N,1);
-AX_IMU = AX + ErreurA*randn(N,1);
+X_TUM = X + ErreurTUM*randn(N,1);
+Y_TUM = Y + ErreurTUM*randn(N,1);
 
-VY_IMU = VY + ErreurV*randn(N,1);
-AY_IMU = AY + ErreurA*randn(N,1);
 
 
 
 % On simule la detection d'un TAG tout les 30 m
-for j = 1 : 1 : N
-    X_TAG(j,1) = 0;
-    Y_TAG(j,1) = 0;
-end
 
 for j = 1 : 30 : N
     X_TAG(j,1) = X(j,1) + ErreurTAG*randn(1,1);
     Y_TAG(j,1) = Y(j,1) + ErreurTAG*randn(1,1);
 end
 
+for j = 2 : 1 : 29
+    X_TAG(j,1) = -2000000;
+    Y_TAG(j,1) = -2000000;
+end
+
+for j = 31 : 1 : 29
+    X_TAG(j,1) = -2000000;
+    Y_TAG(j,1) = -2000000;
+end
+
 
 %plot
 figure(1)
-subplot (2,1,1), plot(X,'b')
+subplot (1,1,1), plot(X,'b')
 xlabel('Temps');
 ylabel('Position X');
 hold on
-subplot (2,1,1), plot(X_GPS, 'r')
+subplot (1,1,1), plot(X_GPS, 'r')
 hold on
-subplot (2,1,1), plot(X_TAG, 'c')
+subplot (1,1,1), plot(X_TAG, 'c')
 hold on
-subplot (2,1,1), plot(X_ODOM, 'g')
-legend('reel','gps','tag','odom')
-subplot (2,1,2), plot(VX,'k')
-xlabel('Temps');
-ylabel('Vitesse X');
+subplot (1,1,1), plot(X_ODOM, 'g')
 hold on
-subplot (2,1,2), plot(VX_IMU,'y')
-legend('Vreel','Vimu')
+subplot (1,1,1), plot(X_TUM, 'y')
+legend('reel','gps','tag','odom','Tum')
+
 
 % 
 % 
 figure(2)
-subplot (2,1,1), plot(Y,'b')
+subplot (1,1,1), plot(Y,'b')
 xlabel('Temps');
 ylabel('Position Y');
 hold on
-subplot (2,1,1), plot(Y_GPS, 'r')
+subplot (1,1,1), plot(Y_GPS, 'r')
 hold on
-subplot (2,1,1), plot(Y_TAG, 'c')
+subplot (1,1,1), plot(Y_TAG, 'c')
 hold on
-subplot (2,1,1), plot(Y_ODOM, 'g')
-legend('reel','gps','tag','odom')
-subplot (2,1,2), plot(VY,'k')
-xlabel('Temps');
-ylabel('Vitesse Y');
+subplot (1,1,1), plot(Y_ODOM, 'g')
 hold on
-subplot (2,1,2), plot(VY_IMU,'y')
-legend('Vreel','Vimu')
+subplot (1,1,1), plot(Y_TUM, 'y')
+legend('reel','gps','tag','odom','Tum')
+
+
+
 
