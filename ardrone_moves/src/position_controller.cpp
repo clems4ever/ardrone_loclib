@@ -7,7 +7,7 @@
 #include <geometry_msgs/Twist.h>
 #include "ardrone_moves/SwitchOnOff.h"
 #include "ardrone_moves/ControllerState.h"
-#include "ardrone_trajectory/ARDroneTrajectory.h"
+#include "ardrone_msgs/ARDroneTrajectory.h"
 #include <tf/tf.h>
 
 
@@ -101,7 +101,7 @@ void target_callback(const geometry_msgs::Pose::ConstPtr& consigne){
 	ROS_DEBUG("new consigne : %f %f %f",Pos_Controller_U.consigne[0],Pos_Controller_U.consigne[1],Pos_Controller_U.consigne[2]);
 }
 
-void trajectory_plan_callback(const ardrone_trajectory::ARDroneTrajectory::ConstPtr& traj_plan){
+void trajectory_plan_callback(const ardrone_msgs::ARDroneTrajectory::ConstPtr& traj_plan){
 	Pos_Controller_U.consigne[0]=traj_plan->points.begin()->x;
 	Pos_Controller_U.consigne[1]=traj_plan->points.begin()->y;
 	Pos_Controller_U.consigne[2]=traj_plan->points.begin()->z;

@@ -25,7 +25,7 @@
 	<depend package="tf"/>
 	<depend package="rospy"/>
 	<depend package="std_msgs"/>
-	<depend package="ardrone_trajectory"/>
+	<depend package="ardrone_msgs"/>
 	<!--depend package="ardrone_autonomy"/-->
 
 	<run_depend>message_runtime</run_depend>

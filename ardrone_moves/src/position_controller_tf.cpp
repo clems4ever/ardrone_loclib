@@ -91,9 +91,9 @@ void step_PID(void){
 	if(_enabled){
 		rt_OneStep();
 
-		twist.linear.x=Pos_Controller_Y.speedcmd[0];
-		twist.linear.y=Pos_Controller_Y.speedcmd[1];
-		twist.linear.z=Pos_Controller_Y.speedcmd[2];
+		twist.linear.x=Pos_Controller_Y.speedcmd[0]*10;
+		twist.linear.y=Pos_Controller_Y.speedcmd[1]*10;
+		twist.linear.z=Pos_Controller_Y.speedcmd[2]*10;
 		twist.angular.z=Pos_Controller_Y.yawcmd;
 
 #ifdef DEBUG_POS_CONTROLLER_OUTPUTS
