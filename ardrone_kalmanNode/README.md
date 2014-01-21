@@ -7,11 +7,11 @@ Node including a Kalman filter. Run with the launchfile. The launchfile run **ro
 
 This node use data provide by differents sensors and packages :
 
-        **imu data** estimated by **tum_ardrone** using drone_stateestimation
+**imu data** estimated by **tum_ardrone** using drone_stateestimation
           
-        **gps_data** provide by another node in the lib
+**gps_data** provide by another node in the lib
         
-        **tag_data** provide by tag_detection
+**tag_data** provide by tag_detection
         
         
 That's why it is needed to run the three nodes
