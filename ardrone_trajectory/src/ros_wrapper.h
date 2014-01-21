@@ -6,6 +6,7 @@
 
 class ARDroneTrajectory;
 
+#include "ros/ros.h"
 #include "ardrone_msgs/ARDronePosition2D.h"
 #include "ardrone_msgs/ARDroneMapSrv.h"
 
@@ -29,6 +30,7 @@ public slots:
 private:
     bool m_isRunning;
     static ARDroneTrajectory *p_trajectory;
+		static ros::Publisher traj_pub;
 
 };
 
