@@ -216,7 +216,21 @@ double checkData(bool t, double v, int matrix_zone, int type)
     if(t==false)
     {
       R_point[matrix_zone]=999999;
-      val=v;
+      
+      // Même avec une covariance élevée, on a un doute de l'impact de la mesure, on l'initialise à une valeur proche
+      // Si coordonnée sur x
+      if(matrix_zone == 0 || matrix_zone == 18 || matrix_zone == 54)
+      {
+            val = Prediction_point[0];
+      }
+      
+      // Si coordonnée sur x
+      if(matrix_zone == 9 || matrix_zone == 27 || matrix_zone == 63)
+      {
+            val = Prediction_point[1];
+      }    
+      
+      //val=v;
     }
     // Sinon ...
     else 
@@ -294,7 +308,7 @@ int main(int argc, char **argv)
 
         //Fonction Kalman Boucle 
         //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
-        ROS_INFO("ZPREC -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
+        //ROS_INFO("ZPREC -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
         //ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
         
         Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
