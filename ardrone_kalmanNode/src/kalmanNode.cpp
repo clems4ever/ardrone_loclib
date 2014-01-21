@@ -36,6 +36,7 @@
 // %Tag(MSG_HEADER)%
 #include "std_msgs/String.h"
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Vector3.h"
 #include "sensor_msgs/Imu.h"
 #include "nav_msgs/Odometry.h"
@@ -153,7 +154,6 @@ void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
     }
     */
 
-    ROS_INFO("TAG -> x_tag: %f, y_tag: %f", x_tag, y_tag);
     x_tum = msg->x + x_tag;
     y_tum = msg->y + y_tag;
     z_tum = msg->z;
@@ -164,11 +164,14 @@ void messageCallbackTUM(const tum_ardrone::filter_state::ConstPtr &msg)
 
     // Variable prête
     Ftum=true;        
+    
+    //ROS_INFO("RTUM/ ATUM -> x_Rtum: %f, y_Rtum: %f / x_Atum: %f, y_Atum: %f",x_tum, y_tum, x_imu, y_imu);
 }
 
 void messageCallbackYAW(const tum_ardrone::filter_state::ConstPtr &msg)
 {
   yaw_current=msg->yaw;
+  //ROS_INFO("ANGLE -> yaw: %f, theta: %f ", yaw_current, teta);
 }
 
 void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
@@ -178,6 +181,7 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
     y_gps=msg->pose.pose.position.y;
 
     // /!\ A tester : Correction du drift du GPS à partir des TAGS
+    /*
     if(stateOffset){
       if((ros::Time::now().toSec()-timeTAG)<5){
             offsetX=x_tag-x_gps;
@@ -190,9 +194,12 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
 
     x_gps+=offsetX;
     y_gps+=offsetY;
+    
+    */
 
     // Variable prête
     Fgps=true;
+    //ROS_INFO("GPS -> x_gps: %f, y_gps: %f",x_gps, y_gps);
 }
 
 
@@ -204,7 +211,7 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
 
     // Variable prête
     Fodom=true;
-    //ROS_INFO("ODOM -> x_odom: %f, y_odom: %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
+    //ROS_INFO("ODOM -> x_odom: %f, y_odom: %f", x_odom, y_odom);
 }
 
  void messageCallbackTAG(const geometry_msgs::Point::ConstPtr &msg)
@@ -215,6 +222,7 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
 
     // Variable prête
     Ftag=true;
+    //ROS_INFO("TAG -> x_tag: %f, y_tag: %f", x_tag, y_tag);
 
     //Acquisition du temps pour le calcul de l'offset du GPS
     timeTAG=ros::Time::now().toSec();
@@ -241,7 +249,7 @@ double checkData(bool t, double v, int matrix_zone, int type)
       // Même avec une covariance élevée, on a un doute de l'impact de la mesure, on l'initialise à une valeur proche
       // Si coordonnée sur x
       if(matrix_zone == 0 || matrix_zone == 18 || matrix_zone == 54)
-      {
+      {ROS_INFO("ANGLE -> yaw: %f, theta: %f ", yaw_current, teta);
             val = Prediction_point[0];
       }
       
@@ -284,8 +292,9 @@ int main(int argc, char **argv)
   timeStamp=ros::Time::now().toSec();
 
   //Publisher
-  ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("kalman_position", 10);
-  //command_channel = nh_.resolveName("tum_ardrone/com");
+  //ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Point>("kalman_position", 10);
+  ros::Publisher KalmanPos_pub = n.advertise<geometry_msgs::Pose>("kalman_position", 10);
+  
   ros::Publisher reset_tum_pub = n.advertise<std_msgs::String>("tum_ardrone/com",50);
     
   // message de reset de TUM
@@ -295,7 +304,8 @@ int main(int argc, char **argv)
   rst.data = ss.str();
   
   // Déclaration du message qui servira à publier la position estimée du kalman
-  geometry_msgs::Point positionMsg;
+  //geometry_msgs::Point positionMsg;
+  geometry_msgs::Pose positionMsg;
 
   //Subscriber
   ros::Subscriber TUM_sub = n.subscribe("/ardrone/predictedPose", 1000, messageCallbackTUM);
@@ -306,7 +316,7 @@ int main(int argc, char **argv)
 
 
   //loop rate
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(1);
 
 
   int count = 0;
@@ -359,13 +369,29 @@ int main(int argc, char **argv)
         Pprec_point=Pk_point;
         
         //Publication de la position issue du Kalman
+        /* message type Point
         positionMsg.x = Prediction_point[0];
         positionMsg.y = Prediction_point[1];
         positionMsg.z = z_tum;
+        */
+        // message type Pose
+        positionMsg.position.x = Prediction_point[0];
+        positionMsg.position.y = Prediction_point[1];
+        positionMsg.position.z = z_tum;
+        positionMsg.orientation.x = 0;  // useless
+        positionMsg.orientation.y = 0;  // useless
+        positionMsg.orientation.z = 0;  // Orientation absolue du drone
+        positionMsg.orientation.w = 0;  // useless
+        
 
         KalmanPos_pub.publish(positionMsg);
         
-        
+        ROS_INFO("RTUM -> x_Rtum: %f, y_Rtum: %f ",x_tum, y_tum);       
+        ROS_INFO("ATUM -> x_Atum: %f, y_Atum: %f ",x_imu, y_imu);
+        ROS_INFO("GPS -> x_gps: %f, y_gps: %f",x_gps, y_gps);
+        ROS_INFO("ODOM -> x_odom: %f, y_odom: %f",x_odom, y_odom);
+        ROS_INFO("TAG -> x_tag: %f, y_tag: %f",x_tag, y_tag);
+        ROS_INFO("ANGLE -> yaw: %f, theta: %f \n\n", yaw_current, teta);
 
         ros::spinOnce();
 
