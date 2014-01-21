@@ -13,6 +13,7 @@
 
 
 ARDroneTrajectory *ros_wrapper::p_trajectory = 0;
+ros::Publisher ros_wrapper::traj_pub;
 
 
 ros_wrapper::ros_wrapper(ARDroneTrajectory *simu, QObject *parent) :
@@ -27,6 +28,7 @@ void ros_wrapper::run()
     ros::Rate loop_rate(1);
 
     ros::ServiceServer s2 = n.advertiseService("ardrone_loclib_trajectory", ros_wrapper::computeTrajectory);
+		ros_wrapper::traj_pub=n.advertise<ardrone_msgs::ARDroneTrajectory>("trajectory_plan",10);
 
     while(1)
     {
@@ -63,6 +65,8 @@ bool ros_wrapper::computeTrajectory(ardrone_msgs::ARDroneTrajectorySrv::Request 
         resp.trajectory.points.at(i).x = ((double)path.at(i).x()) * scale + offsetx;
         resp.trajectory.points.at(i).y = -((double)path.at(i).y() - p_trajectory->getSize().height()) * scale + offsety;
     }
+		//publish the trajectory on corresponding topic
+		ros_wrapper::traj_pub.publish(resp.trajectory);
 
     return true;
 }
