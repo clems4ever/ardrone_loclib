@@ -10,16 +10,19 @@
 		<remap from="/extended_fix" to="/ardrone/gps/extended_fix"/>
   </node>
 
+	<!--convert gps data to odometry data in UTM position-->
 	<node pkg="gps_common" type="utm_odometry_node" name="gps_to_odom" output="screen" required="true">
 		<param name="frame_id" value="base_gps"/>
 		<remap from="/fix" to="/ardrone/gps/fix"/>
 		<remap from="/odom" to="/gps_odom"/>
 	</node>
 
-	<node pkg="odometry_to_path" type="gps_navdata_to_pose" name="gps_navdata_to_pose" required="true">
+	<!-- creates a path from o succession of odometry messages from gps -->
+	<!--node pkg="odometry_to_path" type="gps_navdata_to_pose" name="gps_navdata_to_pose" required="true">
 		<remap from="/pose" to="/pose_estimation"/>
-	</node>
+	</node-->
 
+	<!-- launch position controller from gps data -->
 	<node pkg="ardrone_moves" type="position_controller" name="position_control" required="true" output="screen"/>
 
 
