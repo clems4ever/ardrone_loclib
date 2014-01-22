@@ -83,18 +83,21 @@ double y_odom=0.0;
 
 
 //Etat précédents des variables dans kalman
-double Xprec[4]={};
-double Pprec[16]={};
+double Xprec[2]={};
+double Pprec[4]={};
 double Zprec[8]={};
 
 //Etat courants des variables de Kalman
 double Z[8]={};
-double Xk[4]={};
-double Pk[16]={};
+double Xk[2]={};
+double Pk[4]={};
 double Prediction[4]={};
-
+//double C[16]={1,0,1,0,1,1,1,0,0,1,0,1,1,1,0,1};
+double C[16]={0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0};
 //Pointeurs pour chaques variables de Kalman
 double *R_point=R;
+double *C_point=C;
+double *C_point_precedent=C;
 double *R_point_precedent=R;
 double *Xprec_point=Xprec;
 double *Pprec_point=Pprec;
@@ -230,43 +233,16 @@ void messageCallbackGPS(const nav_msgs::Odometry::ConstPtr &msg)
 // matrix_zone = position de la covariance dans la matrice R
 // type = gps || odom || tag || tum
 // \return la valeur de la covariance correcte en fonction de l'arriver des data et met à jour la covariance associée 
-double checkData(bool t, double v, int matrix_zone, int type)
+double checkData(bool t, double v, int matrix_zone)
 {    
     double val=0;
-    // Si variable non fraiche
-    if(t==false)
-    {
-      R_point[matrix_zone]=999999;
-      
-      // Même avec une covariance élevée, on a un doute de l'impact de la mesure, on l'initialise à une valeur proche
-      // Si coordonnée sur x
-      if(matrix_zone == 0 || matrix_zone == 18 || matrix_zone == 54)
-      {
-            val = Prediction_point[0];
-      }
-      
-      // Si coordonnée sur x
-      if(matrix_zone == 9 || matrix_zone == 27 || matrix_zone == 63)
-      {
-            val = Prediction_point[1];
-      }    
-      
-      //val=v;
-    }
-    // Sinon ...
-    else 
-    {
-      val=v;
-      if(type==1)
-        R_point[matrix_zone]=Rgps;
-      if(type==2)
-        R_point[matrix_zone]=Rodom;
-      if(type==3)
-        R_point[matrix_zone]=Rtag;
-      if(type==4)
-        R_point[matrix_zone]=Rtum;
-    }
+     if(t==false)
+      C_point[matrix_zone]=0;
 
+    else
+      C_point[matrix_zone]=1;
+
+    val=v;
     return val;  
 }
 
@@ -314,12 +290,12 @@ int main(int argc, char **argv)
   {
 
         //Affectation vecteur de mesure
-        Z[0]=checkData(Fgps,x_gps,0,1);
-        Z[1]=checkData(Fgps,y_gps,9,1);
-        Z[2]=checkData(Fodom,x_odom, 18,2);
-        Z[3]=checkData(Fodom,x_odom, 27,2);
-        Z[4]=checkData(Ftag,x_tag, 36,3);
-        Z[5]=checkData(Ftag,y_tag, 45,3);
+        Z[0]=checkData(Fgps,x_gps,0);
+        Z[1]=checkData(Fgps,y_gps,9);
+        Z[2]=checkData(Fodom,x_odom,2);
+        Z[3]=checkData(Fodom,x_odom,11);
+        Z[4]=checkData(Ftag,x_tag,5);
+        Z[5]=checkData(Ftag,y_tag,12);
         
         //  Afin de reinitialiser la position donnée par TUM
         if (Ftag==true)
@@ -334,17 +310,13 @@ int main(int argc, char **argv)
             reset_tum_pub.publish(rst);
         }
         
-        Z[6]=checkData(Ftum,x_imu, 54,4);
-        Z[7]=checkData(Ftum,y_imu, 63,4);
+        Z[6]=checkData(Ftum,x_imu, 6);
+        Z[7]=checkData(Ftum,y_imu, 15);
 
-        //Fonction Kalman Boucle 
-        //ROS_INFO("TUM -> x_tum: %f, y_tum: %f",x_tum, y_tum);
-        ROS_INFO("TUM -> x_tum: %f, y_tum: %f",Zprec_point[6], Zprec_point[7]);
-        ROS_INFO("IMU -> x_imu: %f, y_imu: %f",x_imu, y_imu);
-        //ROS_INFO("COVARIANCE R -> RGPS: %f, RODOM: %f, RTAG: %f, RxTUM: %f, RyTUM: %f",R_point_precedent[0],R_point_precedent[18],R_point_precedent[36],R_point_precedent[54],R_point_precedent[63]);
-        
-        Kalman_boucle(R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
-
+        ROS_INFO("TAG : %f %f",Xk_point[0], Xk_point[1]);
+       
+        Kalman_boucle(C_point_precedent,R_point_precedent, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
+       // Kalman_boucle(C,R, Xprec_point,Pprec_point,Zprec_point, Xk_point, Pk_point , Prediction_point);
         //Variables non fraiches
         Ftag=false;
         Fodom=false;
@@ -355,6 +327,7 @@ int main(int argc, char **argv)
         //Mise a jour des variables
         Zprec_point=Z;  
         R_point_precedent=R_point;
+        C_point_precedent=C_point;
         Xprec_point=Xk_point;
         Pprec_point=Pk_point;
         
