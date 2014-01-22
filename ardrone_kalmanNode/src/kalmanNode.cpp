@@ -89,6 +89,9 @@ double Z[8]={};
 double Xk[2]={};
 double Pk[4]={};
 double Prediction[4]={};
+
+//Initialisation a comprendre pour debugger le programme
+//Il faut comprendre quel coefficient correspond a quelle mesure
 double C[16]={0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0};
 
 //Pointeurs pour chaques variables de Kalman
@@ -288,6 +291,9 @@ int main(int argc, char **argv)
   {
 
     //Affectation vecteur de mesure en verifiant leurs fraicheur
+    //Second point de bug
+    //Il faut comprendre quel coefficient de C il faut modifier pour
+    //activer/desactiver l'entrée
     Z[0]=checkData(Fgps,x_gps,0);
     Z[1]=checkData(Fgps,y_gps,9);
     Z[2]=checkData(Fodom,x_odom,2);

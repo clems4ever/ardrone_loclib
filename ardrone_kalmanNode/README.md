@@ -68,6 +68,15 @@ The node subscribe to several topics for data acquisition :
    * To get the gps position it receive ```nav_msgs::Odometry``` on  ```gps_odom```
    * To get the tum position estimation, it receive ```tum_ardrone::filter_state``` on  ```ardrone/predictedPose```
    * To get the yaw orientation estimation, it receive ```tum_ardrone::filter_state``` on  ```ardrone/predictedPose```
+
+### Problem persistants
+
+The function Kalman boucle has been developed and tested on MATLAB. It is working very well. The Kalman filter node don't work actually if only one input is available, even if it s working well on MATLAB. Indeed, the prediction change when it is receiving a value, but decrease just after and stabilize it aroud zero. This problem unsolved come from the C-matrix call. We have to understand how to change the coefficient in this matrix to active/disactive correctly differents inputs. 
+
+Normally, if on data is received, the Kalman filter prediction has to stay around this values.
+
+In cause of this, this node is not ready to use.
+
    
 ### Functionnement
 
